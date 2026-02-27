@@ -49,9 +49,9 @@ const routes = [
     meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
-    path: '/admin/barbers',
-    name: 'admin-barbers',
-    component: () => import('@/views/admin/BarbersAdmin.vue'),
+    path: '/admin/case-managers',
+    name: 'admin-case-managers',
+    component: () => import('@/views/admin/CaseManagersAdmin.vue'),
     meta: { requiresAuth: true, roles: ['admin'] }
   },
   {
@@ -68,15 +68,11 @@ const routes = [
   },
 
 
-
-
-
-
   {
-    path: '/barber/dashboard',
-    name: 'barber-dashboard',
-    component: () => import('@/views/barber/DashboardBarber.vue'),
-    meta: { requiresAuth: true, roles: ['barber'] }
+    path: '/case-manager/dashboard',
+    name: 'case-manager-dashboard',
+    component: () => import('@/views/case-manager/DashboardCaseManager.vue'),
+    meta: { requiresAuth: true, roles: ['casemanager'] }
   },
   {
     path: '/client/dashboard',
@@ -84,8 +80,6 @@ const routes = [
     component: () => import('@/views/client/DashboardClient.vue'),
     meta: { requiresAuth: true, roles: ['client'] }
   },
-
-
 
 
   // Ruta 404 (opcional pero útil)
@@ -113,9 +107,9 @@ router.beforeEach((to, from, next) => {
   if (auth.isAuthenticated && to.path === '/dashboard') {
     const role = auth.user?.roles?.[0]?.name;
 
-    if (role === 'admin') return next('/admin/dashboard');
-    if (role === 'barber') return next('/barber/dashboard');
-    if (role === 'client') return next('/client/dashboard');
+    if (role === 'admin')        return next('/admin/dashboard');
+    if (role === 'casemanager') return next('/case-manager/dashboard');
+    if (role === 'client')       return next('/client/dashboard');
   }
 
   // Protección adicional por rol específico

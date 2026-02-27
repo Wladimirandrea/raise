@@ -13,51 +13,58 @@ class RoleAndUserSeeder extends Seeder
     {
         // Crear roles
         $roles = [
-            ['name' => 'admin',   'description' => 'Administrador del sistema'],
-            ['name' => 'barber',  'description' => 'Barbero / Estilista'],
-            ['name' => 'client',  'description' => 'Cliente de la barbería'],
+            ['name' => 'admin',       'description' => 'Administrador del sistema'],
+            ['name' => 'casemanager', 'description' => 'case manager / Manejador de casos'],
+            ['name' => 'client',      'description' => 'Cliente'],
         ];
 
         foreach ($roles as $roleData) {
             Role::firstOrCreate(['name' => $roleData['name']], $roleData);
         }
 
-        // Crear usuarios de prueba (solo con los campos que SÍ existen en tu tabla)
+        // Avatares por defecto según rol
+        $defaultAvatars = [
+            'admin'       => 'avatars/admin.png',
+            'casemanager' => 'avatars/casemanager.png',
+            'client'      => 'avatars/client.png',
+        ];
+
+        // Crear usuarios de prueba
         $users = [
             [
                 'name'     => 'Admin Principal',
-                'email'    => 'admin@barbershop.com',
+                'email'    => 'admin@raise.com',
                 'password' => Hash::make('123456789'),
                 'phone'    => '555-0001',
+                'role'     => 'admin',
             ],
             [
-                'name'     => 'Barbero Juan',
-                'email'    => 'barber@barbershop.com',
+                'name'     => 'Juan',
+                'email'    => 'juan-casemanager@raise.com',
                 'password' => Hash::make('123456789'),
                 'phone'    => '555-0002',
+                'role'     => 'casemanager',
             ],
             [
                 'name'     => 'Cliente María',
-                'email'    => 'client@barbershop.com',
+                'email'    => 'client@raise.com',
                 'password' => Hash::make('123456789'),
                 'phone'    => '555-0003',
+                'role'     => 'client',
             ],
         ];
 
         foreach ($users as $userData) {
+            $roleName = $userData['role'];
+            unset($userData['role']);
+
             $user = User::firstOrCreate(
                 ['email' => $userData['email']],
                 $userData + [
                     'is_active' => true,
+                    'avatar'    => $defaultAvatars[$roleName] ?? 'avatars/default.png',
                 ]
             );
-
-            // Asignar rol según el email (ejemplo simple)
-            $roleName = match ($user->email) {
-                'admin@barbershop.com'  => 'admin',
-                'barber@barbershop.com' => 'barber',
-                default                 => 'client',
-            };
 
             $role = Role::where('name', $roleName)->first();
             if ($role) {
@@ -66,8 +73,8 @@ class RoleAndUserSeeder extends Seeder
         }
 
         $this->command->info('Roles y usuarios de prueba creados exitosamente.');
-        $this->command->info('Admin: admin@barbershop.com / admin123');
-        $this->command->info('Barber: barber@barbershop.com / barber123');
-        $this->command->info('Client: client@barbershop.com / client123');
+        $this->command->info('Admin: admin@raise.com / 123456789');
+        $this->command->info('Juan: juan-casemanager@raise.com / 123456789');
+        $this->command->info('Client: client@raise.com / 123456789');
     }
 }

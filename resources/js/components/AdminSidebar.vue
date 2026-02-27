@@ -26,9 +26,9 @@ const menuItems = [
     to: '/admin/appointments'
   },
   {
-    label: 'sidebar.barbers',
-    icon: '✂️',
-    to: '/admin/barbers'
+    label: 'sidebar.casemanagers',
+    icon: '🧑‍💼',
+    to: '/admin/case-managers'
   },
   {
     label: 'sidebar.reports',
@@ -82,7 +82,7 @@ const menuItems = [
 
     <!-- Footer del sidebar -->
     <div v-if="isOpen" class="px-4 py-3 border-t border-gray-800">
-      <p class="text-xs text-gray-600">BarberShop v1.0</p>
+      <p class="text-xs text-gray-600">Raise v1.0</p>
     </div>
   </aside>
 </template>

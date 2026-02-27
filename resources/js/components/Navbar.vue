@@ -48,7 +48,7 @@ const languageDropdownOpen = ref(false)
           <div class="h-8 w-8 rounded bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
             B
           </div>
-          <span class="text-lg font-semibold text-white">BarberShop</span>
+          <span class="text-lg font-semibold text-white">Case Manager</span>
         </div>
 
         <!-- Búsqueda centrada -->

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
 
-            // Campos extras para tu barbershop
+            // Campos extras para tu case manager
             $table->string('phone')->nullable()->unique();
             $table->string('avatar')->default('avatars/default.png');
             $table->date('birth_date')->nullable();

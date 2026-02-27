@@ -29,11 +29,19 @@ class UserController extends Controller
             'avatar'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        // Avatar por defecto según rol
+        $defaultAvatars = [
+            'admin'       => 'avatars/admin.png',
+            'casemanager' => 'avatars/casemanager.png',
+            'client'      => 'avatars/client.png',
+        ];
+
         $data = [
             'name'     => $validated['name'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
             'phone'    => $validated['phone'] ?? null,
+            'avatar'   => $defaultAvatars[$validated['role']] ?? 'avatars/default.png',
         ];
 
         if ($request->hasFile('avatar')) {
@@ -76,8 +84,9 @@ class UserController extends Controller
                 'valid' => $request->file('avatar')->isValid(),
             ]);
 
-            // Eliminar avatar anterior si existe
-            if ($user->avatar && $user->avatar !== 'avatars/default.png') {
+            // Eliminar avatar anterior si es uno subido por el usuario (no default)
+            $defaultAvatars = ['avatars/admin.png', 'avatars/casemanager.png', 'avatars/client.png', 'avatars/default.png'];
+            if ($user->avatar && !in_array($user->avatar, $defaultAvatars)) {
                 Storage::disk('public')->delete($user->avatar);
             }
 
@@ -91,7 +100,6 @@ class UserController extends Controller
         \Log::info('Data enviada al update:', $data);
         \Log::info('Avatar en DB después del update:', ['avatar' => $user->fresh()->avatar]);
 
-
         if (isset($validated['role'])) {
             $role = Role::where('name', $validated['role'])->first();
             $user->roles()->sync([$role->id]);
@@ -104,8 +112,6 @@ class UserController extends Controller
     {
         return response()->json($user->load('roles'));
     }
-
-
 
     public function destroy(User $user)
     {

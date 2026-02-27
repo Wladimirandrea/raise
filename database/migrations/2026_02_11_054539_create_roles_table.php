@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('roles', function (Blueprint $table) {
             $table->id();  // ← 'id' como primary key
 
-            $table->string('name')->unique();  // admin, barber, client
+            $table->string('name')->unique();  // admin, case_manager, client
             $table->string('description')->nullable();
 
             $table->timestamps();

@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_active' => 'boolean',
     ];
+
     public function roles()
     {
         return $this->belongsToMany(Role::class);
@@ -51,9 +52,9 @@ class User extends Authenticatable
         return $this->hasRole('admin');
     }
 
-    public function isBarber(): bool
+    public function isCaseManager(): bool
     {
-        return $this->hasRole('barber');
+        return $this->hasRole('casemanager');
     }
 
     public function isClient(): bool

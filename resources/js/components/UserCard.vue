@@ -1,16 +1,16 @@
 <template>
   <div class="card-wrapper">
-    <!-- Barber pole top right -->
-    <div class="barber-pole">
-      <div class="pole-stripes"></div>
-    </div>
+
+    <!-- Accent line top -->
+    <div class="card-accent"></div>
 
     <!-- Role badge -->
     <div class="role-badge">
+      <span class="role-dot"></span>
       <span>{{ role }}</span>
     </div>
 
-    <!-- Action buttons left -->
+    <!-- Action buttons -->
     <div class="action-buttons">
       <button class="action-btn view-btn" @click="$emit('view')" title="Ver">
         <span class="btn-inner">👁</span>
@@ -25,22 +25,24 @@
 
     <!-- Avatar -->
     <div class="avatar-container">
-      <img :src="avatar || '/storage/avatars/default.png'" :alt="name" class="avatar-img" />
+      <div class="avatar-ring">
+        <img :src="avatar || '/storage/avatars/default.png'" :alt="name" class="avatar-img" />
+      </div>
     </div>
 
     <!-- Name plate -->
     <div class="name-plate">
-      <div class="plate-border">
-        <span class="plate-name">{{ name.toUpperCase() }}</span>
-      </div>
+      <span class="plate-name">{{ name.toUpperCase() }}</span>
+      <span class="plate-divider"></span>
     </div>
+
   </div>
 </template>
 
 <script setup>
 defineProps({
-  name: { type: String, default: 'Pedro Perez' },
-  role: { type: String, default: 'Cliente' },
+  name:   { type: String, default: 'Pedro Perez' },
+  role:   { type: String, default: 'Cliente' },
   avatar: { type: String, default: null },
 })
 
@@ -48,79 +50,105 @@ defineEmits(['view', 'edit', 'delete'])
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Cinzel:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap');
 
+/* ─── CARD ─────────────────────────────────── */
 .card-wrapper {
   position: relative;
   width: 260px;
   height: 340px;
-  background: radial-gradient(ellipse at 30% 20%, #3a3a3a 0%, #1a1a1a 50%, #0d0d0d 100%);
-  border-radius: 20px;
+  background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+  border-radius: 16px;
   overflow: hidden;
   box-shadow:
-    0 20px 60px rgba(0,0,0,0.8),
-    inset 0 1px 0 rgba(255,255,255,0.08);
+    0 0 0 1px rgba(148, 163, 184, 0.08),
+    0 24px 48px rgba(0, 0, 0, 0.6),
+    0 4px 16px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 24px;
+  padding-bottom: 28px;
   user-select: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* ─── BARBER POLE ─────────────────────────── */
-.barber-pole {
+.card-wrapper:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 0 1px rgba(99, 179, 237, 0.2),
+    0 32px 56px rgba(0, 0, 0, 0.7),
+    0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Noise texture overlay */
+.card-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── ACCENT LINE ───────────────────────────── */
+.card-accent {
   position: absolute;
   top: 0;
+  left: 0;
   right: 0;
-  width: 36px;
-  height: 120px;
-  overflow: hidden;
-  border-radius: 0 20px 0 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #06b6d4, #3b82f6);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+  z-index: 2;
 }
 
-.pole-stripes {
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    -45deg,
-    #c0392b 0px,
-    #c0392b 8px,
-    #fff    8px,
-    #fff    16px,
-    #2471a3 16px,
-    #2471a3 24px,
-    #fff    24px,
-    #fff    32px
-  );
-  animation: pole-spin 3s linear infinite;
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-@keyframes pole-spin {
-  from { background-position: 0 0; }
-  to   { background-position: 0 64px; }
-}
-
-/* ─── ROLE BADGE ──────────────────────────── */
+/* ─── ROLE BADGE ────────────────────────────── */
 .role-badge {
   position: absolute;
-  top: 16px;
-  right: 44px;
-  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px;
-  padding: 4px 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  top: 18px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 4px 12px 4px 8px;
+  backdrop-filter: blur(8px);
+  z-index: 2;
 }
 
-.role-badge span {
-  font-family: 'Playfair Display', serif;
-  font-size: 13px;
-  color: #fff;
-  letter-spacing: 1px;
+.role-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px #34d399;
+  animation: pulse-dot 2s ease-in-out infinite;
 }
 
-/* ─── ACTION BUTTONS ──────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+
+.role-badge span:last-child {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ─── ACTION BUTTONS ────────────────────────── */
 .action-buttons {
   position: absolute;
   left: 16px;
@@ -128,126 +156,106 @@ defineEmits(['view', 'edit', 'delete'])
   transform: translateY(-60%);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
+  z-index: 2;
 }
 
 .action-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  transition: transform 0.15s, box-shadow 0.15s;
-  position: relative;
+  font-size: 15px;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  backdrop-filter: blur(8px);
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
 }
 
 .action-btn:active {
   transform: scale(0.93);
 }
 
-.btn-inner {
-  position: relative;
-  z-index: 1;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
-}
-
-/* View — azul oscuro 3D */
 .view-btn {
-  background: radial-gradient(circle at 35% 30%, #5b8dd9, #1a3a6b);
-  box-shadow:
-    0 6px 0 #0d1f3c,
-    0 8px 16px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.3);
+  background: rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 .view-btn:hover {
-  box-shadow:
-    0 8px 0 #0d1f3c,
-    0 10px 20px rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,255,255,0.3);
-  transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
 }
 
-/* Edit — dorado 3D */
 .edit-btn {
-  background: radial-gradient(circle at 35% 30%, #c9a84c, #7a6020);
-  box-shadow:
-    0 6px 0 #3d3010,
-    0 8px 16px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.3);
+  background: rgba(234, 179, 8, 0.12);
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.15);
 }
 .edit-btn:hover {
-  box-shadow:
-    0 8px 0 #3d3010,
-    0 10px 20px rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,255,255,0.3);
-  transform: translateY(-2px);
+  border-color: rgba(234, 179, 8, 0.35);
+  box-shadow: 0 6px 16px rgba(234, 179, 8, 0.3);
 }
 
-/* Delete — rojo oscuro 3D */
 .delete-btn {
-  background: radial-gradient(circle at 35% 30%, #c0392b, #6b1515);
-  box-shadow:
-    0 6px 0 #3c0b0b,
-    0 8px 16px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.2);
+  background: rgba(239, 68, 68, 0.12);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
 }
 .delete-btn:hover {
-  box-shadow:
-    0 8px 0 #3c0b0b,
-    0 10px 20px rgba(0,0,0,0.7),
-    inset 0 1px 0 rgba(255,255,255,0.2);
-  transform: translateY(-2px);
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
 }
 
-/* ─── AVATAR ──────────────────────────────── */
+/* ─── AVATAR ────────────────────────────────── */
 .avatar-container {
-  width: 170px;
-  height: 200px;
-  margin-bottom: 12px;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  margin-bottom: 16px;
+  z-index: 1;
+}
+
+.avatar-ring {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.3);
 }
 
 .avatar-img {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   object-fit: cover;
   object-position: top;
-  filter: drop-shadow(0 -4px 20px rgba(0,0,0,0.8));
+  border: 2px solid #0f172a;
 }
 
-/* ─── NAME PLATE ──────────────────────────── */
+/* ─── NAME PLATE ────────────────────────────── */
 .name-plate {
-  width: 85%;
-}
-
-.plate-border {
-  background: linear-gradient(135deg, #2471a3, #1a5276);
-  border-radius: 6px;
-  padding: 2px;
-  box-shadow:
-    0 4px 12px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.2);
-  /* vintage stripe border */
-  border-top: 4px solid #c0392b;
-  border-bottom: 4px solid #c0392b;
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 1;
 }
 
 .plate-name {
-  display: block;
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  color: #f1f5f9;
+  letter-spacing: 2px;
   text-align: center;
-  font-family: 'Cinzel', serif;
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 3px;
-  padding: 6px 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.plate-divider {
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
 }
 </style>

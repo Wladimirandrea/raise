@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 import { useI18n } from 'vue-i18n'
 
@@ -20,6 +20,25 @@ const editId = ref(null)
 const loading = ref(false)
 const error = ref('')
 const showForm = ref(false)
+
+// ─── AVATARES POR DEFECTO ─────────────────────────────────
+const defaultAvatars = {
+  admin:       '/storage/avatars/admin.png',
+  casemanager: '/storage/avatars/casemanager.png',
+  client:      '/storage/avatars/client.png',
+}
+
+const avatarPreviewSrc = computed(() => {
+  if (form.value.avatarPreview) return form.value.avatarPreview
+  return defaultAvatars[form.value.role] || '/storage/avatars/default.png'
+})
+
+// Cuando cambia el rol y no hay imagen subida, el preview cambia automáticamente
+watch(() => form.value.role, () => {
+  if (!form.value.avatar) {
+    form.value.avatarPreview = null
+  }
+})
 
 // ─── MOBILE/TABLET DETECTION ──────────────────────────────
 const isMobile = ref(window.innerWidth < 1280)
@@ -206,10 +225,10 @@ onUnmounted(() => {
             {{ t('users.roles.admin') }}
           </button>
           <button
-            @click="setFilter('barber')"
-            :class="['px-3 py-1.5 rounded-lg text-xs font-medium transition border', activeFilter === 'barber' ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']"
+            @click="setFilter('casemanager')"
+            :class="['px-3 py-1.5 rounded-lg text-xs font-medium transition border', activeFilter === 'casemanager' ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']"
           >
-            {{ t('users.roles.barber') }}
+            {{ t('users.roles.casemanager') }}
           </button>
           <button
             @click="setFilter('client')"
@@ -236,7 +255,7 @@ onUnmounted(() => {
               <tr v-for="user in paginatedUsers" :key="user.id" class="hover:bg-gray-50 transition-colors">
                 <td class="px-4 py-3">
                   <img
-                    :src="user.avatar ? `/storage/${user.avatar}` : '/storage/avatars/default.png'"
+                    :src="user.avatar ? `/storage/${user.avatar}` : defaultAvatars[user.roles[0]?.name] || '/storage/avatars/default.png'"
                     :alt="user.name"
                     class="w-10 h-10 rounded-full object-cover border border-gray-200"
                   >
@@ -249,9 +268,9 @@ onUnmounted(() => {
                     v-for="role in user.roles" :key="role.id"
                     :class="[
                       'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mr-1',
-                      role.name === 'admin'  ? 'bg-red-100 text-red-800'   :
-                      role.name === 'barber' ? 'bg-blue-100 text-blue-800' :
-                                               'bg-green-100 text-green-800'
+                      role.name === 'admin'       ? 'bg-red-100 text-red-800'   :
+                      role.name === 'casemanager' ? 'bg-blue-100 text-blue-800' :
+                                                    'bg-green-100 text-green-800'
                     ]"
                   >
                     {{ t(`users.roles.${role.name}`) }}
@@ -338,7 +357,7 @@ onUnmounted(() => {
               <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('users.role') }}</label>
               <select v-model="form.role" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 <option value="admin">{{ t('users.roles.admin') }}</option>
-                <option value="barber">{{ t('users.roles.barber') }}</option>
+                <option value="casemanager">{{ t('users.roles.casemanager') }}</option>
                 <option value="client">{{ t('users.roles.client') }}</option>
               </select>
             </div>
@@ -346,7 +365,7 @@ onUnmounted(() => {
               <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('users.avatar') }}</label>
               <input type="file" accept="image/*" @change="handleAvatarChange" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
               <div class="mt-3 flex justify-center">
-                <img :src="form.avatarPreview || '/storage/avatars/default.png'" alt="Preview" class="w-24 h-24 object-cover rounded-full border-4 border-gray-200 shadow">
+                <img :src="avatarPreviewSrc" alt="Preview" class="w-24 h-24 object-cover rounded-full border-4 border-gray-200 shadow">
               </div>
             </div>
             <div class="flex justify-end gap-3 pt-4 border-t">
@@ -404,7 +423,7 @@ onUnmounted(() => {
               <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('users.role') }}</label>
               <select v-model="form.role" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 <option value="admin">{{ t('users.roles.admin') }}</option>
-                <option value="barber">{{ t('users.roles.barber') }}</option>
+                <option value="casemanager">{{ t('users.roles.casemanager') }}</option>
                 <option value="client">{{ t('users.roles.client') }}</option>
               </select>
             </div>
@@ -412,7 +431,7 @@ onUnmounted(() => {
               <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('users.avatar') }}</label>
               <input type="file" accept="image/*" @change="handleAvatarChange" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
               <div class="mt-3 flex justify-center">
-                <img :src="form.avatarPreview || '/storage/avatars/default.png'" alt="Preview" class="w-24 h-24 object-cover rounded-full border-4 border-gray-200 shadow">
+                <img :src="avatarPreviewSrc" alt="Preview" class="w-24 h-24 object-cover rounded-full border-4 border-gray-200 shadow">
               </div>
             </div>
             <div class="flex justify-end gap-3 pt-4 border-t mb-4">

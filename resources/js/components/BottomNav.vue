@@ -6,11 +6,11 @@ const router = useRouter()
 const route = useRoute()
 
 const items = [
-  { name: 'admin-dashboard', path: '/admin/dashboard', icon: '🏠', label: 'Dashboard' },
-  { name: 'admin-users',     path: '/admin/users',     icon: '👥', label: 'Usuarios'  },
-  { name: 'admin-appointments', path: '/admin/appointments', icon: '📅', label: 'Turnos' },
-  { name: 'admin-barbers',   path: '/admin/barbers',   icon: '✂️', label: 'Barberos'  },
-  { name: 'admin-settings',  path: '/admin/settings',  icon: '⚙️', label: 'Config'    },
+  { name: 'admin-dashboard',    path: '/admin/dashboard',     icon: '🏠',    label: 'Dashboard'     },
+  { name: 'admin-users',        path: '/admin/users',         icon: '👥',    label: 'Usuarios'      },
+  { name: 'admin-appointments', path: '/admin/appointments',  icon: '📅',    label: 'Turnos'        },
+  { name: 'admin-case-managers',path: '/admin/case-managers', icon: '🧑‍💼', label: 'Case Managers' },
+  { name: 'admin-settings',     path: '/admin/settings',      icon: '⚙️',    label: 'Config'        },
 ]
 
 const activeIndex = ref(0)

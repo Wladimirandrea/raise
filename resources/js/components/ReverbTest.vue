@@ -18,7 +18,7 @@ onUnmounted(() => {
 
 <template>
   <div class="p-4 bg-gray-100 rounded">
-    <h2 class="text-xl font-bold">Prueba Reverb - BarberShop</h2>
+    <h2 class="text-xl font-bold">Prueba Reverb - Raise</h2>
     <p>Escuchando en canal público 'test-channel'...</p>
     
     <ul class="mt-4 space-y-2">

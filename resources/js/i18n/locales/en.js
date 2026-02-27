@@ -5,7 +5,7 @@ export default {
     settings: 'Settings',
     logout: 'Log Out',
     appointments: 'Appointments',
-    barbers: 'Barbers',
+    casemanagers: 'Case Managers',
     reports: 'Reports',
   },
   auth: {
@@ -29,7 +29,7 @@ export default {
     dashboard: 'Dashboard',
     users: 'Users',
     appointments: 'Appointments',
-    barbers: 'Barbers',
+    casemanagers: 'Case Managers',
     reports: 'Reports',
     settings: 'Settings',
   },
@@ -49,7 +49,7 @@ export default {
     saving: 'Saving...',
     roles: {
       admin: 'Admin',
-      barber: 'Barber',
+      casemanager: 'Case Manager',
       client: 'Client',
     },
     password_hint: '(leave empty to keep current)',

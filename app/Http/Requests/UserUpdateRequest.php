@@ -26,7 +26,7 @@ class UserUpdateRequest extends FormRequest
             'apellido' => 'sometimes|string|max:100',
             'email'    => 'sometimes|email|unique:users,email,' . $this->user->id,
             'telefono' => 'nullable|string|max:20',
-            'rol'      => 'sometimes|in:admin,barbero,cliente',
+            'rol'      => 'sometimes|in:admin,casemanager,cliente',
             'password' => 'nullable|min:6',
             'imagen'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];

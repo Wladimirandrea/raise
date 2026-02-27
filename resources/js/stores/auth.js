@@ -12,13 +12,13 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.token,
-    userName: (state) => state.user?.name || 'Invitado',
-    userEmail: (state) => state.user?.email || '',
-    userRoles: (state) => state.user?.roles || [],
-    isAdmin: (state) => state.user?.roles?.some(role => role.name === 'admin') ?? false,
-    isBarber: (state) => state.user?.role === 'barber',
-    isClient: (state) => state.user?.role === 'client',
+    isAuthenticated:  (state) => !!state.token,
+    userName:         (state) => state.user?.name || 'Invitado',
+    userEmail:        (state) => state.user?.email || '',
+    userRoles:        (state) => state.user?.roles || [],
+    isAdmin:          (state) => state.user?.roles?.some(role => role.name === 'admin') ?? false,
+    isCaseManager:    (state) => state.user?.roles?.some(role => role.name === 'casemanager') ?? false,
+    isClient:         (state) => state.user?.roles?.some(role => role.name === 'client') ?? false,
   },
 
   actions: {

@@ -8,7 +8,7 @@ const auth = useAuthStore()
   <div class="min-h-screen bg-teal-700 text-white p-8">
     <div class="max-w-7xl mx-auto">
       <h1 class="text-5xl font-bold mb-6 text-center">
-        Dashboard Barbero
+        Dashboard case manager
       </h1>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -26,7 +26,7 @@ const auth = useAuthStore()
       </div>
 
       <p class="mt-12 text-center text-teal-200 text-xl">
-        ¡Bienvenido de nuevo, {{ auth.userName }}! Hora de brillar con el corte perfecto.
+        ¡Bienvenido de nuevo, {{ auth.userName }}! Hora de brillar
       </p>
     </div>
   </div>
