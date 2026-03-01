@@ -8,7 +8,7 @@ const auth = useAuthStore()
   <div class="min-h-screen bg-teal-700 text-white p-8">
     <div class="max-w-7xl mx-auto">
       <h1 class="text-5xl font-bold mb-6 text-center">
-        Dashboard case manager
+        Dashboard Case Manager
       </h1>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
