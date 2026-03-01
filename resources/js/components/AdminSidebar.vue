@@ -21,6 +21,15 @@ const menuItems = [
     to: '/admin/users'
   },
   {
+    label: 'sidebar.schedules',
+    icon: '🗓️',
+    to: '/admin/schedules'
+  },
+
+
+
+
+  {
     label: 'sidebar.appointments',
     icon: '📅',
     to: '/admin/appointments'
@@ -44,37 +53,25 @@ const menuItems = [
 </script>
 
 <template>
-  <aside
-    :class="[
-      'h-screen bg-gray-900 border-r border-gray-800 flex flex-col transition-all duration-300 ease-in-out',
-      isOpen ? 'w-64' : 'w-16'
-    ]"
-  >
+  <aside :class="[
+    'h-screen bg-gray-900 border-r border-gray-800 flex flex-col transition-all duration-300 ease-in-out',
+    isOpen ? 'w-64' : 'w-16'
+  ]">
     <!-- Botón toggle -->
     <div class="flex items-center justify-between px-4 py-4 border-b border-gray-800">
       <span v-if="isOpen" class="text-white font-semibold text-sm">Admin Panel</span>
-      <button
-        @click="toggle"
-        class="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 transition"
-      >
+      <button @click="toggle" class="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 transition">
         <span class="text-lg">{{ isOpen ? '◀' : '▶' }}</span>
       </button>
     </div>
 
     <!-- Links -->
     <nav class="flex-1 py-4 overflow-y-auto">
-      <router-link
-        v-for="item in menuItems"
-        :key="item.to"
-        :to="item.to"
+      <router-link v-for="item in menuItems" :key="item.to" :to="item.to"
         class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
-        active-class="bg-blue-600/20 text-blue-400 border-r-2 border-blue-500"
-      >
+        active-class="bg-blue-600/20 text-blue-400 border-r-2 border-blue-500">
         <span class="text-xl flex-shrink-0">{{ item.icon }}</span>
-        <span
-          v-if="isOpen"
-          class="text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300"
-        >
+        <span v-if="isOpen" class="text-sm font-medium whitespace-nowrap overflow-hidden transition-all duration-300">
           {{ t(item.label) }}
         </span>
       </router-link>

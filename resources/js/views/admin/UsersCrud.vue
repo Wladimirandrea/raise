@@ -184,7 +184,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="p-4 md:p-6 max-w-[1400px] mx-auto h-full flex flex-col">
+  <div class="p-4 md:p-6 max-w-full mx-auto h-full flex flex-col">
     <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800">{{ t('users.title') }}</h1>
 
     <div v-if="error" class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">

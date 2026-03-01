@@ -42,6 +42,20 @@ const routes = [
     component: () => import('@/views/admin/UsersCrud.vue'),
     meta: { requiresAuth: true, roles: ['admin'] }
   },
+
+  {
+    path: '/admin/schedules',
+    name: 'admin-schedules',
+    component: () => import('@/views/admin/SchedulesAdmin.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] }
+  },
+
+
+
+
+
+
+
   {
     path: '/admin/appointments',
     name: 'admin-appointments',
@@ -107,9 +121,9 @@ router.beforeEach((to, from, next) => {
   if (auth.isAuthenticated && to.path === '/dashboard') {
     const role = auth.user?.roles?.[0]?.name;
 
-    if (role === 'admin')        return next('/admin/dashboard');
+    if (role === 'admin') return next('/admin/dashboard');
     if (role === 'casemanager') return next('/case-manager/dashboard');
-    if (role === 'client')       return next('/client/dashboard');
+    if (role === 'client') return next('/client/dashboard');
   }
 
   // Protección adicional por rol específico
