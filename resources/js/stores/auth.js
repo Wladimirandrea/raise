@@ -17,7 +17,7 @@ export const useAuthStore = defineStore('auth', {
     userEmail:        (state) => state.user?.email || '',
     userRoles:        (state) => state.user?.roles || [],
     isAdmin:          (state) => state.user?.roles?.some(role => role.name === 'admin') ?? false,
-    isCaseManager:    (state) => state.user?.roles?.some(role => role.name === 'casemanager') ?? false,
+    isCaseManager: (state) => state.user?.roles?.some(role => role.name === 'case_manager'),
     isClient:         (state) => state.user?.roles?.some(role => role.name === 'client') ?? false,
   },
 

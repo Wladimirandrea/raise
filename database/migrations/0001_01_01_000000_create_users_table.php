@@ -12,25 +12,32 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();  // ← Esto crea la columna 'id' BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-
+            $table->id();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
 
-            // Campos extras para tu case manager
             $table->string('phone')->nullable()->unique();
             $table->string('avatar')->default('avatars/default.png');
             $table->date('birth_date')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamp('last_login_at')->nullable();
 
+            // ✅ Sin ->after() aquí
+            $table->unsignedBigInteger('case_manager_id')->nullable();
+
             $table->timestamps();
-        
         });
 
+        // ✅ FK en Schema::table separado, DESPUÉS de crear la tabla
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('case_manager_id')
+                ->references('id')
+                ->on('users')
+                ->nullOnDelete();
+        });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

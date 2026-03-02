@@ -19,14 +19,16 @@ class User extends Authenticatable
         'avatar',
         'birth_date',
         'is_active',
+        'case_manager_id',
     ];
 
     protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'is_active' => 'boolean',
+        'birth_date'        => 'date',
+        'is_active'         => 'boolean',
+        'last_login_at'     => 'datetime',
     ];
 
     public function roles()
@@ -37,6 +39,11 @@ class User extends Authenticatable
     public function hasRole(string $role): bool
     {
         return $this->roles()->where('name', $role)->exists();
+    }
+
+    public function caseManager()
+    {
+        return $this->belongsTo(User::class, 'case_manager_id');
     }
 
     public function hasAnyRole($roles): bool
@@ -54,7 +61,7 @@ class User extends Authenticatable
 
     public function isCaseManager(): bool
     {
-        return $this->hasRole('casemanager');
+        return $this->hasRole('case_manager');
     }
 
     public function isClient(): bool
@@ -65,5 +72,31 @@ class User extends Authenticatable
     public function primaryRole(): ?string
     {
         return $this->roles->first()?->name;
+    }
+
+
+    /**
+     * Los clientes asignados a este case manager (un case manager → muchos clientes)
+     */
+    public function clients()
+    {
+        return $this->hasMany(User::class, 'case_manager_id');
+    }
+
+    // ─── Relación Citas ────────────────────────────────────────
+
+    public function appointmentsAsManager()
+    {
+        return $this->hasMany(Appointment::class, 'case_manager_id');
+    }
+
+    public function appointmentsAsClient()
+    {
+        return $this->hasMany(Appointment::class, 'client_id');
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        return asset('storage/' . $this->avatar);
     }
 }
