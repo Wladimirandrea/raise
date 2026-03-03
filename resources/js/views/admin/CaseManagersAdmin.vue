@@ -4,8 +4,8 @@
     <!-- ─── Header ──────────────────────────────────────────── -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Case Managers</h1>
-        <p class="page-subtitle">Gestiona los case managers y sus clientes asignados</p>
+        <h1 class="page-title">{{ $t('case_managers.title') }}</h1>
+        <p class="page-subtitle">{{ $t('case_managers.subtitle') }}</p>
       </div>
     </div>
 
@@ -17,7 +17,7 @@
         <div class="cm-list-card">
 
           <div class="card-header">
-            <h2>Case Managers</h2>
+            <h2>{{ $t('case_managers.list_title') }}</h2>
             <span class="badge-count">{{ caseManagers.length }}</span>
           </div>
 
@@ -26,7 +26,7 @@
           </div>
 
           <div v-else-if="caseManagers.length === 0" class="empty-state">
-            <p>No hay case managers registrados.</p>
+            <p>{{ $t('case_managers.no_managers') }}</p>
           </div>
 
           <div v-else class="cm-list">
@@ -44,7 +44,7 @@
               </div>
               <div class="cm-meta">
                 <span class="clients-badge" :class="cm.clients_count > 0 ? 'has-clients' : 'no-clients'">
-                  {{ cm.clients_count }} cliente{{ cm.clients_count !== 1 ? 's' : '' }}
+                  {{ $t('case_managers.clients', { count: cm.clients_count }) }}
                 </span>
                 <span class="status-dot" :class="cm.is_active ? 'active' : 'inactive'"></span>
               </div>
@@ -77,7 +77,7 @@
               :class="{ active: activeTab === 'assigned' }"
               @click="activeTab = 'assigned'"
             >
-              Clientes asignados
+              {{ $t('case_managers.assigned_tab') }}
               <span class="tab-badge">{{ assignedClients.length }}</span>
             </button>
             <button
@@ -85,7 +85,7 @@
               :class="{ active: activeTab === 'unassigned' }"
               @click="activeTab = 'unassigned'; loadUnassigned()"
             >
-              Sin asignar
+              {{ $t('case_managers.unassigned_tab') }}
               <span class="tab-badge neutral">{{ unassignedClients.length }}</span>
             </button>
           </div>
@@ -95,9 +95,9 @@
 
             <div v-if="assignedClients.length === 0" class="empty-tab">
               <div class="empty-icon">👤</div>
-              <p>Este case manager no tiene clientes asignados aún.</p>
+              <p>{{ $t('case_managers.no_assigned') }}</p>
               <button class="btn-outline" @click="activeTab = 'unassigned'; loadUnassigned()">
-                Asignar clientes
+                {{ $t('case_managers.assign_btn') }}
               </button>
             </div>
 
@@ -109,23 +109,20 @@
                   <span class="client-email">{{ client.email }}</span>
                 </div>
                 <div class="client-actions">
-                  <!-- Reasignar -->
                   <select
                     class="reassign-select"
                     @change="reassignClient(client.id, $event.target.value); $event.target.value = ''"
-                    title="Reasignar a otro case manager"
+                    :title="$t('case_managers.reassign')"
                   >
-                    <option value="">Reasignar...</option>
-                    <option
-                      v-for="cm in otherCaseManagers"
-                      :key="cm.id"
-                      :value="cm.id"
-                    >{{ cm.name }}</option>
+                    <option value="">{{ $t('case_managers.reassign') }}</option>
+                    <option v-for="cm in otherCaseManagers" :key="cm.id" :value="cm.id">
+                      {{ cm.name }}
+                    </option>
                   </select>
                   <button
                     class="btn-unassign"
                     @click="unassignClient(client.id)"
-                    title="Desasignar cliente"
+                    :title="$t('case_managers.unassign')"
                   >✕</button>
                 </div>
               </div>
@@ -142,11 +139,10 @@
 
             <div v-else-if="unassignedClients.length === 0" class="empty-tab">
               <div class="empty-icon">✅</div>
-              <p>Todos los clientes tienen un case manager asignado.</p>
+              <p>{{ $t('case_managers.no_unassigned') }}</p>
             </div>
 
             <div v-else>
-              <!-- Seleccionar todos -->
               <div class="select-all-bar">
                 <label class="checkbox-label">
                   <input
@@ -154,7 +150,7 @@
                     :checked="selectedClientIds.length === unassignedClients.length"
                     @change="toggleSelectAll"
                   />
-                  Seleccionar todos ({{ unassignedClients.length }})
+                  {{ $t('case_managers.select_all', { count: unassignedClients.length }) }}
                 </label>
                 <button
                   v-if="selectedClientIds.length > 0"
@@ -162,7 +158,9 @@
                   :disabled="submitting"
                   @click="assignSelected"
                 >
-                  {{ submitting ? 'Asignando...' : `Asignar ${selectedClientIds.length} cliente(s)` }}
+                  {{ submitting
+                    ? $t('case_managers.assigning')
+                    : $t('case_managers.assign_selected', { count: selectedClientIds.length }) }}
                 </button>
               </div>
 
@@ -247,7 +245,6 @@ export default {
       this.activeTab = 'assigned'
       this.selectedClientIds = []
       this.unassignedClients = []
-      // Cargar ambos en paralelo para tener el badge correcto desde el inicio
       await Promise.all([
         this.loadAssignedClients(),
         this.loadUnassigned(),
@@ -271,7 +268,6 @@ export default {
       finally { this.loadingUnassigned = false }
     },
 
-    // ─── Asignar ──────────────────────────────────────────────
     async assignSelected() {
       this.submitting = true
       try {
@@ -279,7 +275,6 @@ export default {
           client_ids: this.selectedClientIds,
         })
         await this.loadCaseManagers()
-        // Actualizar el selectedCM con datos frescos
         this.selectedCM = this.caseManagers.find(cm => cm.id === this.selectedCM.id)
         await this.loadAssignedClients()
         await this.loadUnassigned()
@@ -288,7 +283,6 @@ export default {
       finally { this.submitting = false }
     },
 
-    // ─── Desasignar ───────────────────────────────────────────
     async unassignClient(clientId) {
       try {
         await axios.delete(`/admin/case-managers/${this.selectedCM.id}/unassign`, {
@@ -297,10 +291,10 @@ export default {
         await this.loadCaseManagers()
         this.selectedCM = this.caseManagers.find(cm => cm.id === this.selectedCM.id)
         await this.loadAssignedClients()
+        await this.loadUnassigned()
       } catch (e) { console.error(e) }
     },
 
-    // ─── Reasignar ────────────────────────────────────────────
     async reassignClient(clientId, newCaseManagerId) {
       if (!newCaseManagerId) return
       try {
@@ -311,10 +305,10 @@ export default {
         await this.loadCaseManagers()
         this.selectedCM = this.caseManagers.find(cm => cm.id === this.selectedCM.id)
         await this.loadAssignedClients()
+        await this.loadUnassigned()
       } catch (e) { console.error(e) }
     },
 
-    // ─── Selección ────────────────────────────────────────────
     toggleClientSelection(id) {
       const idx = this.selectedClientIds.indexOf(id)
       if (idx === -1) this.selectedClientIds.push(id)
@@ -341,12 +335,10 @@ export default {
   color: #1e293b;
 }
 
-/* ─── Header ──────────────────────────────────────────────── */
 .page-header { margin-bottom: 24px; }
 .page-title { font-size: 1.75rem; font-weight: 700; margin: 0; }
 .page-subtitle { color: #64748b; margin: 4px 0 0; font-size: 0.88rem; }
 
-/* ─── Layout ──────────────────────────────────────────────── */
 .main-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -357,7 +349,6 @@ export default {
   grid-template-columns: 380px 1fr;
 }
 
-/* ─── Lista CM ────────────────────────────────────────────── */
 .cm-list-card {
   background: #fff;
   border-radius: 12px;
@@ -378,7 +369,6 @@ export default {
 }
 
 .cm-list { padding: 8px; }
-
 .cm-item {
   display: flex; align-items: center; gap: 12px;
   padding: 12px; border-radius: 10px; cursor: pointer;
@@ -389,38 +379,26 @@ export default {
 
 .cm-avatar {
   width: 44px; height: 44px; border-radius: 50%;
-  object-fit: cover; border: 2px solid #e2e8f0;
-  flex-shrink: 0;
+  object-fit: cover; border: 2px solid #e2e8f0; flex-shrink: 0;
 }
 .cm-info { flex: 1; min-width: 0; }
 .cm-name { display: block; font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cm-email { display: block; font-size: 0.78rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .cm-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-.clients-badge {
-  font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 20px;
-}
+.clients-badge { font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
 .clients-badge.has-clients { background: #d1fae5; color: #065f46; }
 .clients-badge.no-clients  { background: #f1f5f9; color: #64748b; }
 
-.status-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; }
 .status-dot.active   { background: #10b981; }
 .status-dot.inactive { background: #cbd5e1; }
 
-/* ─── Panel detalle ───────────────────────────────────────── */
 .detail-panel {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  background: #fff; border-radius: 12px; border: 1px solid #e2e8f0;
   box-shadow: 0 4px 20px rgba(0,0,0,.08);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  height: fit-content;
-  position: sticky;
-  top: 20px;
+  display: flex; flex-direction: column;
+  overflow: hidden; height: fit-content; position: sticky; top: 20px;
 }
 
 .panel-header {
@@ -445,29 +423,20 @@ export default {
 }
 .panel-close:hover { background: rgba(255,255,255,.3); }
 
-/* ─── Tabs ────────────────────────────────────────────────── */
-.tabs {
-  display: flex; border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
-}
+.tabs { display: flex; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
 .tab {
   flex: 1; padding: 12px 16px; border: none; background: none;
   font-size: 0.875rem; font-weight: 600; color: #64748b;
   cursor: pointer; display: flex; align-items: center;
   justify-content: center; gap: 8px;
-  border-bottom: 2px solid transparent;
-  transition: all .2s;
+  border-bottom: 2px solid transparent; transition: all .2s;
 }
 .tab:hover { color: #1e293b; }
 .tab.active { color: #3b82f6; border-bottom-color: #3b82f6; background: #fff; }
 
-.tab-badge {
-  background: #3b82f6; color: #fff;
-  border-radius: 20px; padding: 1px 7px; font-size: 0.72rem;
-}
+.tab-badge { background: #3b82f6; color: #fff; border-radius: 20px; padding: 1px 7px; font-size: 0.72rem; }
 .tab-badge.neutral { background: #e2e8f0; color: #64748b; }
 
-/* ─── Tab content ─────────────────────────────────────────── */
 .tab-content { padding: 16px; max-height: 500px; overflow-y: auto; }
 
 .empty-tab {
@@ -484,9 +453,7 @@ export default {
 }
 .btn-outline:hover { background: #eff6ff; }
 
-/* ─── Clients list ────────────────────────────────────────── */
 .clients-list { display: flex; flex-direction: column; gap: 4px; }
-
 .client-item {
   display: flex; align-items: center; gap: 10px;
   padding: 10px 12px; border-radius: 8px;
@@ -505,13 +472,11 @@ export default {
 .client-email { display: block; font-size: 0.76rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .client-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-
 .reassign-select {
   border: 1px solid #e2e8f0; border-radius: 6px;
   padding: 4px 8px; font-size: 0.78rem; color: #475569;
   background: #fff; cursor: pointer; max-width: 130px;
 }
-
 .btn-unassign {
   background: none; border: 1px solid #fca5a5; color: #ef4444;
   border-radius: 6px; width: 28px; height: 28px; font-size: 0.75rem;
@@ -520,12 +485,10 @@ export default {
 }
 .btn-unassign:hover { background: #fee2e2; }
 
-/* ─── Select all bar ──────────────────────────────────────── */
 .select-all-bar {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 12px; background: #f8fafc;
-  border-radius: 8px; margin-bottom: 10px;
-  border: 1px solid #e2e8f0;
+  border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0;
 }
 .checkbox-label {
   display: flex; align-items: center; gap: 8px;
@@ -534,16 +497,12 @@ export default {
 .btn-assign {
   background: #3b82f6; color: #fff; border: none;
   border-radius: 8px; padding: 7px 14px;
-  font-size: 0.82rem; font-weight: 600; cursor: pointer;
-  transition: background .2s;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background .2s;
 }
 .btn-assign:hover { background: #1e40af; }
 .btn-assign:disabled { opacity: .6; cursor: not-allowed; }
 
-/* ─── Loading ─────────────────────────────────────────────── */
-.loading-state {
-  display: flex; justify-content: center; padding: 32px;
-}
+.loading-state { display: flex; justify-content: center; padding: 32px; }
 .spinner {
   width: 28px; height: 28px; border: 3px solid #e2e8f0;
   border-top-color: #3b82f6; border-radius: 50%;
@@ -551,7 +510,6 @@ export default {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Transitions ─────────────────────────────────────────── */
 .slide-panel-enter-active { transition: all .3s ease; }
 .slide-panel-leave-active { transition: all .25s ease; }
 .slide-panel-enter-from   { opacity: 0; transform: translateX(20px); }
