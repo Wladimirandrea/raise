@@ -42,14 +42,19 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
 
     // APPOINTMENTS → /api/admin/appointments
     Route::prefix('appointments')->group(function () {
-        Route::get('/form-data',               [AppointmentController::class, 'formData']);
-        Route::get('/',                        [AppointmentController::class, 'index']);
-        Route::post('/',                       [AppointmentController::class, 'store']);
-        Route::get('/{appointment}',           [AppointmentController::class, 'show']);
-        Route::put('/{appointment}',           [AppointmentController::class, 'update']);
-        Route::patch('/{appointment}/status',  [AppointmentController::class, 'updateStatus']);
-        Route::delete('/{appointment}',        [AppointmentController::class, 'destroy']);
+        Route::get('/form-data',             [AppointmentController::class, 'formData']);
+        Route::get('/clients-by-manager', [AppointmentController::class, 'clientsByManager']);
+        Route::get('/available-slots',    [AppointmentController::class, 'availableSlots']);
+        Route::get('/',                      [AppointmentController::class, 'index']);
+        Route::post('/',                     [AppointmentController::class, 'store']);
+        Route::get('/{appointment}',         [AppointmentController::class, 'show']);
+        Route::put('/{appointment}',         [AppointmentController::class, 'update']);
+        Route::patch('/{appointment}/status', [AppointmentController::class, 'updateStatus']);
+        Route::delete('/{appointment}',      [AppointmentController::class, 'destroy']);
     });
+
+
+
 
     // CASE MANAGERS → /api/admin/case-managers
     Route::prefix('case-managers')->group(function () {
@@ -60,5 +65,4 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
         Route::post('/{user}/assign',          [CaseManagerController::class, 'assignClients']);
         Route::delete('/{user}/unassign',      [CaseManagerController::class, 'unassignClient']);
     });
-
 });
