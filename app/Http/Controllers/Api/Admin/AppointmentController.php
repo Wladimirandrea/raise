@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
+use App\Events\AppointmentCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Schedule;
@@ -102,7 +103,7 @@ class AppointmentController extends Controller
 
         $appointment = Appointment::create($validated);
         $appointment->load(['caseManager', 'client']);
-
+        event(new AppointmentCreated($appointment));
         return response()->json($appointment, 201);
     }
 
@@ -137,24 +138,12 @@ class AppointmentController extends Controller
         $appointment->update(['status' => $request->status]);
         $appointment->load(['caseManager', 'client']);
 
-        // Notificar cambio de estado
-        $appointment->caseManager->notify(new AppointmentNotification($appointment, 'status_changed'));
-        $appointment->client->notify(new AppointmentNotification($appointment, 'status_changed'));
-
         return response()->json($appointment);
     }
 
-    // ─── DELETE /api/admin/appointments/{id} ──────────────────
     public function destroy(Appointment $appointment): JsonResponse
     {
-        $appointment->load(['caseManager', 'client']);
-
-        // Notificar cancelación antes de borrar
-        $appointment->caseManager->notify(new AppointmentNotification($appointment, 'cancelled'));
-        $appointment->client->notify(new AppointmentNotification($appointment, 'cancelled'));
-
         $appointment->delete();
-
         return response()->json(['message' => 'Cita eliminada correctamente.']);
     }
 

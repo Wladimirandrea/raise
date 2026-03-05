@@ -1,7 +1,53 @@
 <script setup>
+import { onMounted, onBeforeUnmount } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useToast } from 'vue-toastification'
 
-const auth = useAuthStore()
+const auth  = useAuthStore()
+const toast = useToast()
+
+function playNotificationSound() {
+  const audio = new Audio('/sounds/notification.mp3')
+  audio.volume = 0.7
+  audio.play().catch(() => {})
+}
+
+function formatDate(date) {
+  if (!date) return ''
+  const clean = String(date).slice(0, 10)
+  const [y, m, d] = clean.split('-')
+  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString('es-ES', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  })
+}
+
+function subscribeToChannel() {
+  if (!window.Echo || !auth.user?.id) {
+    setTimeout(subscribeToChannel, 500)
+    return
+  }
+  window.Echo.private('case-manager.' + auth.user.id)
+    .listen('.appointment.created', (data) => {
+      console.log('Nueva cita recibida:', data)
+      playNotificationSound()
+      const date = formatDate(data.appointment_date)
+      const time = data.start_time?.slice(0, 5)
+      toast.success(
+        '📅 Nueva cita: ' + data.title + ' | Cliente: ' + data.client?.name + ' | ' + date + ' ' + time,
+        { timeout: 8000 }
+      )
+    })
+}
+
+onMounted(() => {
+  subscribeToChannel()
+})
+
+onBeforeUnmount(() => {
+  if (window.Echo && auth.user?.id) {
+    window.Echo.leave('case-manager.' + auth.user.id)
+  }
+})
 </script>
 
 <template>

@@ -14,3 +14,8 @@ Broadcast::channel('test-channel', function () {
 Broadcast::channel('admin.notifications', function ($user) {
     return $user->isAdmin();  // ✅ usa la relación
 });
+
+// Canal privado del case manager — solo el propio case manager puede suscribirse
+Broadcast::channel('case-manager.{caseManagerId}', function ($user, $caseManagerId) {
+    return (int) $user->id === (int) $caseManagerId;
+});

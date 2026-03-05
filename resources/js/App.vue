@@ -12,8 +12,9 @@ const auth = useAuthStore()
 const toast = useToast()
 const notifications = useNotificationsStore()
 
-let adminChannel = null
-let notificationSound = null
+let adminChannel        = null
+let caseManagerChannel  = null
+let notificationSound   = null
 
 const initSound = () => {
   if (!notificationSound) {
@@ -21,49 +22,33 @@ const initSound = () => {
       src: ['/sounds/notification.mp3'],
       volume: 1.0,
       preload: true,
-      html5: false,  // ✅ cambia a false para usar WebAudio en lugar de HTML5
+      html5: false,
       onload: () => console.log('✅ Sonido cargado'),
       onloaderror: (id, err) => console.error('❌ Error cargando sonido:', err),
     })
   }
 }
 
+// ─── Canal Admin ──────────────────────────────────────────
 const subscribeAdminChannel = () => {
   if (!window.Echo) {
-    console.warn('⚠️ Echo no listo, reintentando en 1s...')
-    setTimeout(subscribeAdminChannel, 1000) // ✅ reintenta hasta que Echo esté listo
+    setTimeout(subscribeAdminChannel, 1000)
     return
   }
-
-  if (adminChannel) return // ya suscrito, no duplicar
+  if (adminChannel) return
 
   adminChannel = window.Echo.private('admin.notifications')
     .listen('.user.registered', (event) => {
       console.log('✅ Nuevo registro:', event)
-
-      // ✅ agrega al dropdown
       notifications.addUser({
-        id: event.id,
-        name: event.name,
-        email: event.email,
-        time: event.time,
+        id: event.id, name: event.name, email: event.email, time: event.time,
       })
-
-      // ✅ toast
       toast.success(`🧑 Nuevo usuario: ${event.name} (${event.email})`, {
-        position: 'top-right',
-        timeout: 8000,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
+        position: 'top-right', timeout: 8000,
       })
-
-      // ✅ sonido
       notificationSound?.play()
     })
-    .error((error) => {
-      console.error('❌ Error en canal admin.notifications:', error)
-    })
+    .error((error) => console.error('❌ Error en canal admin.notifications:', error))
 }
 
 const unsubscribeAdminChannel = () => {
@@ -73,14 +58,63 @@ const unsubscribeAdminChannel = () => {
   }
 }
 
+// ─── Canal Case Manager ───────────────────────────────────
+const subscribeCaseManagerChannel = () => {
+  if (!window.Echo) {
+    setTimeout(subscribeCaseManagerChannel, 1000)
+    return
+  }
+  if (caseManagerChannel) return
+  if (!auth.user?.id) return
+
+  caseManagerChannel = window.Echo.private('case-manager.' + auth.user.id)
+    .listen('.appointment.created', (data) => {
+      console.log('✅ Nueva cita para case manager:', data)
+
+      const date = formatDate(data.appointment_date)
+      const time = data.start_time?.slice(0, 5)
+
+      toast.success(
+        `📅 Nueva cita agendada\n${data.title}\nCliente: ${data.client?.name} · ${date} ${time}`,
+        { position: 'top-right', timeout: 8000 }
+      )
+      notificationSound?.play()
+    })
+    .error((error) => console.error('❌ Error en canal case-manager:', error))
+}
+
+const unsubscribeCaseManagerChannel = () => {
+  if (caseManagerChannel && window.Echo) {
+    window.Echo.leave('case-manager.' + auth.user?.id)
+    caseManagerChannel = null
+  }
+}
+
+// ─── Helper fecha ─────────────────────────────────────────
+function formatDate(date) {
+  if (!date) return ''
+  const clean = String(date).slice(0, 10)
+  const [y, m, d] = clean.split('-')
+  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString('es-ES', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  })
+}
+
+// ─── Watchers ─────────────────────────────────────────────
 watch(
   () => auth.isAuthenticated && auth.isAdmin,
   (isAdminAndAuth) => {
-    if (isAdminAndAuth) {
-      subscribeAdminChannel()
-    } else {
-      unsubscribeAdminChannel()
-    }
+    if (isAdminAndAuth) subscribeAdminChannel()
+    else unsubscribeAdminChannel()
+  },
+  { immediate: true }
+)
+
+watch(
+  () => auth.isAuthenticated && auth.isCaseManager,
+  (isCMAndAuth) => {
+    if (isCMAndAuth) subscribeCaseManagerChannel()
+    else unsubscribeCaseManagerChannel()
   },
   { immediate: true }
 )
@@ -96,6 +130,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   unsubscribeAdminChannel()
+  unsubscribeCaseManagerChannel()
   notificationSound?.unload()
 })
 </script>
@@ -105,7 +140,7 @@ onUnmounted(() => {
     <Navbar v-if="auth.isAuthenticated" />
 
     <div class="flex flex-1">
-      <AdminSidebar v-if="auth.isAdmin" class="hidden lg:flex" />  <!-- ✅ esta línea -->
+      <AdminSidebar v-if="auth.isAdmin" class="hidden lg:flex" />
 
       <main class="flex-grow flex flex-col min-h-0">
         <router-view />
