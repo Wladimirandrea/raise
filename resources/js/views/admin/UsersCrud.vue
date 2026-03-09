@@ -23,9 +23,9 @@ const showForm = ref(false)
 
 // ─── AVATARES POR DEFECTO ─────────────────────────────────
 const defaultAvatars = {
-  admin:       '/storage/avatars/admin.png',
-  casemanager: '/storage/avatars/casemanager.png',
-  client:      '/storage/avatars/client.png',
+  admin:        '/storage/avatars/admin.png',
+  case_manager: '/storage/avatars/casemanager.png',
+  client:       '/storage/avatars/client.png',
 }
 
 const avatarPreviewSrc = computed(() => {
@@ -33,7 +33,6 @@ const avatarPreviewSrc = computed(() => {
   return defaultAvatars[form.value.role] || '/storage/avatars/default.png'
 })
 
-// Cuando cambia el rol y no hay imagen subida, el preview cambia automáticamente
 watch(() => form.value.role, () => {
   if (!form.value.avatar) {
     form.value.avatarPreview = null
@@ -225,10 +224,10 @@ onUnmounted(() => {
             {{ t('users.roles.admin') }}
           </button>
           <button
-            @click="setFilter('casemanager')"
-            :class="['px-3 py-1.5 rounded-lg text-xs font-medium transition border', activeFilter === 'casemanager' ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']"
+            @click="setFilter('case_manager')"
+            :class="['px-3 py-1.5 rounded-lg text-xs font-medium transition border', activeFilter === 'case_manager' ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 text-gray-600 hover:bg-gray-50']"
           >
-            {{ t('users.roles.casemanager') }}
+            {{ t('users.roles.case_manager') }}
           </button>
           <button
             @click="setFilter('client')"
@@ -268,9 +267,9 @@ onUnmounted(() => {
                     v-for="role in user.roles" :key="role.id"
                     :class="[
                       'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mr-1',
-                      role.name === 'admin'       ? 'bg-red-100 text-red-800'   :
-                      role.name === 'casemanager' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-green-100 text-green-800'
+                      role.name === 'admin'        ? 'bg-red-100 text-red-800'   :
+                      role.name === 'case_manager' ? 'bg-blue-100 text-blue-800' :
+                                                     'bg-green-100 text-green-800'
                     ]"
                   >
                     {{ t(`users.roles.${role.name}`) }}
@@ -357,7 +356,7 @@ onUnmounted(() => {
               <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('users.role') }}</label>
               <select v-model="form.role" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 <option value="admin">{{ t('users.roles.admin') }}</option>
-                <option value="casemanager">{{ t('users.roles.casemanager') }}</option>
+                <option value="case_manager">{{ t('users.roles.case_manager') }}</option>
                 <option value="client">{{ t('users.roles.client') }}</option>
               </select>
             </div>
@@ -423,7 +422,7 @@ onUnmounted(() => {
               <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('users.role') }}</label>
               <select v-model="form.role" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 <option value="admin">{{ t('users.roles.admin') }}</option>
-                <option value="casemanager">{{ t('users.roles.casemanager') }}</option>
+                <option value="case_manager">{{ t('users.roles.case_manager') }}</option>
                 <option value="client">{{ t('users.roles.client') }}</option>
               </select>
             </div>

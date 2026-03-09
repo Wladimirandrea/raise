@@ -375,6 +375,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import esLocale from '@fullcalendar/core/locales/es'
+import enLocale from '@fullcalendar/core/locales/en-gb'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth.js'
 
@@ -498,6 +499,15 @@ export default {
 
     selectedClientName() {
       return this.clients.find(c => c.id === this.form.client_id)?.name || ''
+    },
+  },
+
+  watch: {
+    '$i18n.locale'(newLocale) {
+      this.calendarOptions = {
+        ...this.calendarOptions,
+        locale: newLocale === 'en' ? enLocale : esLocale,
+      }
     },
   },
 
@@ -709,7 +719,10 @@ export default {
 
     formatDate(date) {
       if (!date) return ''
-      return new Date(date + 'T00:00:00').toLocaleDateString('es-ES', {
+      const clean = String(date).slice(0, 10)
+      const [y, m, d] = clean.split('-')
+      const locale = this.$i18n?.locale === 'en' ? 'en-GB' : 'es-ES'
+      return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString(locale, {
         day: '2-digit', month: 'short', year: 'numeric'
       })
     },
