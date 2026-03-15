@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Events\AppointmentCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\DayOff;
 use App\Models\Schedule;
 use App\Models\User;
-use App\Notifications\AppointmentNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +15,6 @@ use Illuminate\Http\JsonResponse;
 class AppointmentController extends Controller
 {
     // ─── GET /api/admin/appointments ──────────────────────────
-    // Retorna todas las citas (con filtros opcionales)
     public function index(Request $request): JsonResponse
     {
         $query = Appointment::with(['caseManager', 'client']);
@@ -23,49 +22,44 @@ class AppointmentController extends Controller
         if ($request->filled('case_manager_id')) {
             $query->forCaseManager($request->case_manager_id);
         }
-
         if ($request->filled('client_id')) {
             $query->forClient($request->client_id);
         }
-
         if ($request->filled('status')) {
             $query->byStatus($request->status);
         }
-
         if ($request->filled('date_from')) {
             $query->whereDate('appointment_date', '>=', $request->date_from);
         }
-
         if ($request->filled('date_to')) {
             $query->whereDate('appointment_date', '<=', $request->date_to);
         }
 
         $appointments = $query->orderBy('appointment_date')->orderBy('start_time')->get();
 
-        // Formato para FullCalendar
         $events = $appointments->map(fn($a) => [
-            'id'               => $a->id,
-            'title' => $a->title . ' (' . $a->caseManager->name . ')',
-            'start'            => $a->appointment_date->format('Y-m-d') . 'T' . $a->start_time,
-            'end'              => $a->appointment_date->format('Y-m-d') . 'T' . $a->end_time,
-            'backgroundColor'  => $a->status_color,
-            'borderColor'      => $a->status_color,
-            'extendedProps'    => [
-                'status'           => $a->status,
-                'status_label'     => $a->status_label,
-                'case_manager'     => $a->caseManager->name,
-                'case_manager_id'  => $a->case_manager_id,
-                'client'           => $a->client->name,
-                'client_id'        => $a->client_id,
-                'notes'            => $a->notes,
-                'start_time'       => $a->start_time,
-                'end_time'         => $a->end_time,
+            'id'              => $a->id,
+            'title'           => $a->title . ' (' . $a->caseManager->name . ')',
+            'start'           => $a->appointment_date->format('Y-m-d') . 'T' . $a->start_time,
+            'end'             => $a->appointment_date->format('Y-m-d') . 'T' . $a->end_time,
+            'backgroundColor' => $a->status_color,
+            'borderColor'     => $a->status_color,
+            'extendedProps'   => [
+                'status'          => $a->status,
+                'status_label'    => $a->status_label,
+                'case_manager'    => $a->caseManager->name,
+                'case_manager_id' => $a->case_manager_id,
+                'client'          => $a->client->name,
+                'client_id'       => $a->client_id,
+                'notes'           => $a->notes,
+                'start_time'      => $a->start_time,
+                'end_time'        => $a->end_time,
             ],
         ]);
 
         return response()->json([
             'events'       => $events,
-            'appointments' => $appointments, // para la tabla lista
+            'appointments' => $appointments,
         ]);
     }
 
@@ -81,18 +75,18 @@ class AppointmentController extends Controller
             'notes'            => 'nullable|string',
         ]);
 
-        // Calcular end_time automáticamente: start + 30 min
+        // Calcular end_time: start + 30 min
         $validated['end_time'] = Carbon::parse($validated['start_time'])
             ->addMinutes(30)
             ->format('H:i');
 
-        // Verificar solapamiento
+        // Verificar solapamiento con citas existentes
         $conflict = Appointment::where('case_manager_id', $validated['case_manager_id'])
             ->where('appointment_date', $validated['appointment_date'])
             ->where('status', '!=', 'cancelled')
             ->where(function ($q) use ($validated) {
                 $q->where('start_time', '<', $validated['end_time'])
-                    ->where('end_time', '>', $validated['start_time']);
+                  ->where('end_time', '>', $validated['start_time']);
             })->exists();
 
         if ($conflict) {
@@ -101,9 +95,23 @@ class AppointmentController extends Controller
             ], 422);
         }
 
+        // Verificar solapamiento con days off
+        $dayOffConflict = DayOff::where('date', $validated['appointment_date'])
+            ->where(function ($q) use ($validated) {
+                $q->where('start_time', '<', $validated['end_time'])
+                  ->where('end_time', '>', $validated['start_time']);
+            })->exists();
+
+        if ($dayOffConflict) {
+            return response()->json([
+                'message' => 'Ese horario está bloqueado. Por favor elige otro slot.'
+            ], 422);
+        }
+
         $appointment = Appointment::create($validated);
         $appointment->load(['caseManager', 'client']);
         event(new AppointmentCreated($appointment));
+
         return response()->json($appointment, 201);
     }
 
@@ -141,6 +149,7 @@ class AppointmentController extends Controller
         return response()->json($appointment);
     }
 
+    // ─── DELETE /api/admin/appointments/{id} ──────────────────
     public function destroy(Appointment $appointment): JsonResponse
     {
         $appointment->delete();
@@ -148,16 +157,13 @@ class AppointmentController extends Controller
     }
 
     // ─── GET /api/admin/appointments/form-data ────────────────
-    // Retorna case managers y clientes para los selects del formulario
     public function formData(): JsonResponse
     {
-        // Case managers = usuarios con rol 'case_manager'
         $caseManagers = User::whereHas('roles', fn($q) => $q->where('name', 'case_manager'))
             ->where('is_active', true)
             ->select('id', 'name', 'email', 'avatar')
             ->get();
 
-        // Clientes = usuarios con rol 'client'
         $clients = User::whereHas('roles', fn($q) => $q->where('name', 'client'))
             ->where('is_active', true)
             ->select('id', 'name', 'email', 'avatar')
@@ -206,6 +212,7 @@ class AppointmentController extends Controller
             ]);
         }
 
+        // Generar todos los slots de 30 min
         $slots   = [];
         $current = Carbon::parse($request->date . ' ' . $schedule->start_time);
         $end     = Carbon::parse($request->date . ' ' . $schedule->end_time);
@@ -219,6 +226,7 @@ class AppointmentController extends Controller
             $current->addMinutes(30);
         }
 
+        // Filtrar slots ocupados por citas existentes
         $bookedSlots = Appointment::where('case_manager_id', $request->case_manager_id)
             ->where('appointment_date', $request->date)
             ->whereNotIn('status', ['cancelled'])
@@ -231,6 +239,22 @@ class AppointmentController extends Controller
                 $bookedStart = Carbon::parse($booked->start_time);
                 $bookedEnd   = Carbon::parse($booked->end_time);
                 if ($slotStart->lt($bookedEnd) && $slotEnd->gt($bookedStart)) {
+                    return false;
+                }
+            }
+            return true;
+        }));
+
+        // Filtrar slots bloqueados por days off
+        $daysOff = DayOff::where('date', $request->date)->get();
+
+        $availableSlots = array_values(array_filter($availableSlots, function ($slot) use ($daysOff) {
+            foreach ($daysOff as $off) {
+                $slotStart = Carbon::parse($slot['start']);
+                $slotEnd   = Carbon::parse($slot['end']);
+                $offStart  = Carbon::parse($off->start_time);
+                $offEnd    = Carbon::parse($off->end_time);
+                if ($slotStart->lt($offEnd) && $slotEnd->gt($offStart)) {
                     return false;
                 }
             }
