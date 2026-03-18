@@ -32,7 +32,7 @@ class UserController extends Controller
         // Avatar por defecto según rol
         $defaultAvatars = [
             'admin'       => 'avatars/admin.png',
-            'casemanager' => 'avatars/casemanager.png',
+            'case_manager' => 'avatars/casemanager.png',
             'client'      => 'avatars/client.png',
         ];
 

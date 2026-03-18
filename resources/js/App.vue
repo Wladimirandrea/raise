@@ -12,9 +12,9 @@ const auth = useAuthStore()
 const toast = useToast()
 const notifications = useNotificationsStore()
 
-let adminChannel        = null
-let caseManagerChannel  = null
-let notificationSound   = null
+let adminChannel       = null
+let caseManagerChannel = null
+let notificationSound  = null
 
 const initSound = () => {
   if (!notificationSound) {
@@ -27,6 +27,16 @@ const initSound = () => {
       onloaderror: (id, err) => console.error('❌ Error cargando sonido:', err),
     })
   }
+}
+
+// ─── Helper fecha ─────────────────────────────────────────
+function formatDate(date) {
+  if (!date) return ''
+  const clean = String(date).slice(0, 10)
+  const [y, m, d] = clean.split('-')
+  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString('es-ES', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  })
 }
 
 // ─── Canal Admin ──────────────────────────────────────────
@@ -46,6 +56,23 @@ const subscribeAdminChannel = () => {
       toast.success(`🧑 Nuevo usuario: ${event.name} (${event.email})`, {
         position: 'top-right', timeout: 8000,
       })
+      notificationSound?.play()
+    })
+    .listen('.appointment.created', (data) => {
+      console.log('✅ Nueva cita (admin):', data)
+      const time = data.start_time?.slice(0, 5)
+      const date = formatDate(data.appointment_date)
+      notifications.addAppointment({
+        id:     data.id,
+        title:  data.title,
+        date:   data.appointment_date,
+        time:   time,
+        client: data.client?.name,
+      })
+      toast.info(
+        `📅 Nueva cita: ${data.title} · ${data.client?.name} · ${date} ${time}`,
+        { position: 'top-right', timeout: 8000 }
+      )
       notificationSound?.play()
     })
     .error((error) => console.error('❌ Error en canal admin.notifications:', error))
@@ -70,12 +97,17 @@ const subscribeCaseManagerChannel = () => {
   caseManagerChannel = window.Echo.private('case-manager.' + auth.user.id)
     .listen('.appointment.created', (data) => {
       console.log('✅ Nueva cita para case manager:', data)
-
-      const date = formatDate(data.appointment_date)
       const time = data.start_time?.slice(0, 5)
-
+      const date = formatDate(data.appointment_date)
+      notifications.addAppointment({
+        id:     data.id,
+        title:  data.title,
+        date:   data.appointment_date,
+        time:   time,
+        client: data.client?.name,
+      })
       toast.success(
-        `📅 Nueva cita agendada\n${data.title}\nCliente: ${data.client?.name} · ${date} ${time}`,
+        `📅 Nueva cita: ${data.title}\nCliente: ${data.client?.name} · ${date} ${time}`,
         { position: 'top-right', timeout: 8000 }
       )
       notificationSound?.play()
@@ -88,16 +120,6 @@ const unsubscribeCaseManagerChannel = () => {
     window.Echo.leave('case-manager.' + auth.user?.id)
     caseManagerChannel = null
   }
-}
-
-// ─── Helper fecha ─────────────────────────────────────────
-function formatDate(date) {
-  if (!date) return ''
-  const clean = String(date).slice(0, 10)
-  const [y, m, d] = clean.split('-')
-  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString('es-ES', {
-    day: '2-digit', month: 'short', year: 'numeric'
-  })
 }
 
 // ─── Watchers ─────────────────────────────────────────────

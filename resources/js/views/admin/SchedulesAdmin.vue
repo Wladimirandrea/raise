@@ -113,18 +113,18 @@ const saveDayOff = async () => {
   dayOffError.value = ''
   dayOffSuccess.value = ''
   if (!dayOffForm.value.date || !dayOffForm.value.start_time || !dayOffForm.value.end_time) {
-    dayOffError.value = 'Completa la fecha y el rango de horas.'
+    dayOffError.value = t('schedules.days_off.date') + ': ' + t('schedules.days_off.from') + '/' + t('schedules.days_off.to')
     return
   }
   savingDayOff.value = true
   try {
     await axios.post('/admin/days-off', dayOffForm.value)
-    dayOffSuccess.value = '✅ Bloqueo guardado correctamente.'
+    dayOffSuccess.value = '✅ ' + t('schedules.days_off.saved_ok')
     dayOffForm.value = { date: '', start_time: '', end_time: '', reason: '' }
     await fetchDaysOff()
     setTimeout(() => dayOffSuccess.value = '', 3000)
   } catch (e) {
-    dayOffError.value = e.response?.data?.message || 'Error al guardar el bloqueo.'
+    dayOffError.value = e.response?.data?.message || t('schedules.days_off.error_save')
   } finally {
     savingDayOff.value = false
   }
@@ -135,7 +135,7 @@ const deleteDayOff = async (id) => {
     await axios.delete(`/admin/days-off/${id}`)
     await fetchDaysOff()
   } catch (e) {
-    dayOffError.value = 'Error al eliminar.'
+    dayOffError.value = t('schedules.days_off.error_delete')
   }
 }
 
@@ -259,9 +259,9 @@ onMounted(() => {
     <div class="mt-10">
       <div class="mb-4">
         <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-          🚫 Días / Horarios Bloqueados
+          🚫 {{ t('schedules.days_off.title') }}
         </h2>
-        <p class="text-sm text-gray-500 mt-1">Bloquea rangos de horas específicos para que no aparezcan slots disponibles en esas fechas.</p>
+        <p class="text-sm text-gray-500 mt-1">{{ t('schedules.days_off.subtitle') }}</p>
       </div>
 
       <!-- Alerts days off -->
@@ -273,31 +273,31 @@ onMounted(() => {
         <!-- Formulario nuevo bloqueo -->
         <div class="xl:w-96 shrink-0">
           <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">➕ Nuevo bloqueo</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">➕ {{ t('schedules.days_off.new') }}</h3>
 
             <div class="space-y-4">
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">📅 Fecha</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">📅 {{ t('schedules.days_off.date') }}</label>
                 <input v-model="dayOffForm.date" type="date"
                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400">
               </div>
 
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">⏰ Desde</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">⏰ {{ t('schedules.days_off.from') }}</label>
                   <input v-model="dayOffForm.start_time" type="time"
                     class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-gray-600 mb-1">⏰ Hasta</label>
+                  <label class="block text-xs font-medium text-gray-600 mb-1">⏰ {{ t('schedules.days_off.to') }}</label>
                   <input v-model="dayOffForm.end_time" type="time"
                     class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400">
                 </div>
               </div>
 
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">📝 Motivo (opcional)</label>
-                <input v-model="dayOffForm.reason" type="text" placeholder="Ej: Reunión de equipo, Feriado..."
+                <label class="block text-xs font-medium text-gray-600 mb-1">📝 {{ t('schedules.days_off.reason') }}</label>
+                <input v-model="dayOffForm.reason" type="text" :placeholder="t('schedules.days_off.reason_placeholder')"
                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400">
               </div>
 
@@ -311,7 +311,7 @@ onMounted(() => {
 
               <button @click="saveDayOff" :disabled="savingDayOff"
                 class="w-full py-2 px-4 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ savingDayOff ? 'Guardando...' : '🚫 Agregar bloqueo' }}
+                {{ savingDayOff ? t('schedules.days_off.saving') : '🚫 ' + t('schedules.days_off.add') }}
               </button>
             </div>
           </div>
@@ -321,7 +321,7 @@ onMounted(() => {
         <div class="flex-1">
           <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-gray-700">📋 Bloqueos registrados</h3>
+              <h3 class="text-sm font-semibold text-gray-700">📋 {{ t('schedules.days_off.list_title') }}</h3>
               <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">{{ daysOff.length }} bloqueo(s)</span>
             </div>
 
@@ -331,7 +331,7 @@ onMounted(() => {
 
             <div v-else-if="daysOff.length === 0" class="text-center py-10 text-gray-400">
               <div class="text-3xl mb-2">✅</div>
-              <p class="text-sm">No hay bloqueos registrados</p>
+              <p class="text-sm">{{ t('schedules.days_off.empty') }}</p>
             </div>
 
             <div v-else class="divide-y divide-gray-100">

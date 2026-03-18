@@ -19,10 +19,13 @@ class AppointmentCreated implements ShouldBroadcast
         $this->appointment->load(['caseManager:id,name,avatar', 'client:id,name,avatar']);
     }
 
-    // Canal privado del case manager
-    public function broadcastOn(): Channel
+    // Broadcastea a canal del case manager Y al canal admin
+    public function broadcastOn(): array
     {
-        return new PrivateChannel('case-manager.' . $this->appointment->case_manager_id);
+        return [
+            new PrivateChannel('case-manager.' . $this->appointment->case_manager_id),
+            new PrivateChannel('admin.notifications'),
+        ];
     }
 
     public function broadcastAs(): string
@@ -43,6 +46,11 @@ class AppointmentCreated implements ShouldBroadcast
                 'name'   => $this->appointment->client->name,
                 'avatar' => $this->appointment->client->avatar,
             ],
-        ]   ;
+            'case_manager'     => [
+                'id'     => $this->appointment->caseManager->id,
+                'name'   => $this->appointment->caseManager->name,
+                'avatar' => $this->appointment->caseManager->avatar,
+            ],
+        ];
     }
 }
