@@ -657,6 +657,8 @@ export default {
             appointment_date: this.form.appointment_date,
             start_time:       this.form.start_time,
             notes:            this.form.notes,
+          },{
+            headers: { 'X-Locale': this.$i18n.locale }
           })
         }
         this.closePanel()

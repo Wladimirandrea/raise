@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from 'vue-toastification'
+import { useI18n } from 'vue-i18n'
 import { Howl, Howler } from 'howler'
 import Navbar from '@/components/Navbar.vue'
 import AdminSidebar from '@/components/AdminSidebar.vue'
@@ -11,6 +12,7 @@ import BottomNav from '@/components/BottomNav.vue'
 const auth = useAuthStore()
 const toast = useToast()
 const notifications = useNotificationsStore()
+const { t, locale } = useI18n()
 
 let adminChannel       = null
 let caseManagerChannel = null
@@ -34,7 +36,8 @@ function formatDate(date) {
   if (!date) return ''
   const clean = String(date).slice(0, 10)
   const [y, m, d] = clean.split('-')
-  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString('es-ES', {
+  const loc = locale.value === 'en' ? 'en-GB' : 'es-ES'
+  return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString(loc, {
     day: '2-digit', month: 'short', year: 'numeric'
   })
 }
@@ -53,7 +56,7 @@ const subscribeAdminChannel = () => {
       notifications.addUser({
         id: event.id, name: event.name, email: event.email, time: event.time,
       })
-      toast.success(`🧑 Nuevo usuario: ${event.name} (${event.email})`, {
+      toast.success(t('notifications.new_user', { name: event.name, email: event.email }), {
         position: 'top-right', timeout: 8000,
       })
       notificationSound?.play()
@@ -70,7 +73,7 @@ const subscribeAdminChannel = () => {
         client: data.client?.name,
       })
       toast.info(
-        `📅 Nueva cita: ${data.title} · ${data.client?.name} · ${date} ${time}`,
+        `📅 ${t('appointments.new')}: ${data.title} · ${data.client?.name} · ${date} ${time}`,
         { position: 'top-right', timeout: 8000 }
       )
       notificationSound?.play()
@@ -107,7 +110,7 @@ const subscribeCaseManagerChannel = () => {
         client: data.client?.name,
       })
       toast.success(
-        `📅 Nueva cita: ${data.title}\nCliente: ${data.client?.name} · ${date} ${time}`,
+        `📅 ${t('appointments.new')}: ${data.title}\n${t('appointments.fields.client')}: ${data.client?.name} · ${date} ${time}`,
         { position: 'top-right', timeout: 8000 }
       )
       notificationSound?.play()

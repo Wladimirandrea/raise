@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Events\AppointmentCreated;
+use App\Mail\AppointmentConfirmation;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\DayOff;
@@ -11,6 +12,8 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class AppointmentController extends Controller
 {
@@ -86,7 +89,7 @@ class AppointmentController extends Controller
             ->where('status', '!=', 'cancelled')
             ->where(function ($q) use ($validated) {
                 $q->where('start_time', '<', $validated['end_time'])
-                  ->where('end_time', '>', $validated['start_time']);
+                    ->where('end_time', '>', $validated['start_time']);
             })->exists();
 
         if ($conflict) {
@@ -99,7 +102,7 @@ class AppointmentController extends Controller
         $dayOffConflict = DayOff::where('date', $validated['appointment_date'])
             ->where(function ($q) use ($validated) {
                 $q->where('start_time', '<', $validated['end_time'])
-                  ->where('end_time', '>', $validated['start_time']);
+                    ->where('end_time', '>', $validated['start_time']);
             })->exists();
 
         if ($dayOffConflict) {
@@ -108,9 +111,28 @@ class AppointmentController extends Controller
             ], 422);
         }
 
+        // Buscar usuarios antes de crear para tener emails disponibles
+        $cm     = User::find($validated['case_manager_id']);
+        $client = User::find($validated['client_id']);
+
+        // Crear y recargar con relaciones
         $appointment = Appointment::create($validated);
-        $appointment->load(['caseManager', 'client']);
+        $appointment = Appointment::with(['caseManager', 'client'])->find($appointment->id);
         event(new AppointmentCreated($appointment));
+
+        // ─── Enviar emails ────────────────────────────────────
+        $lang = $request->header('X-Locale', app()->getLocale() ?? 'es');
+
+        try {
+            if ($cm?->email) {
+                Mail::to($cm->email)->send(new AppointmentConfirmation($appointment, 'case_manager', $lang));
+            }
+            if ($client?->email) {
+                Mail::to($client->email)->send(new AppointmentConfirmation($appointment, 'client', $lang));
+            }
+        } catch (\Exception $e) {
+            Log::error('Error enviando email de cita: ' . $e->getMessage());
+        }
 
         return response()->json($appointment, 201);
     }
@@ -212,7 +234,6 @@ class AppointmentController extends Controller
             ]);
         }
 
-        // Generar todos los slots de 30 min
         $slots   = [];
         $current = Carbon::parse($request->date . ' ' . $schedule->start_time);
         $end     = Carbon::parse($request->date . ' ' . $schedule->end_time);
@@ -226,7 +247,6 @@ class AppointmentController extends Controller
             $current->addMinutes(30);
         }
 
-        // Filtrar slots ocupados por citas existentes
         $bookedSlots = Appointment::where('case_manager_id', $request->case_manager_id)
             ->where('appointment_date', $request->date)
             ->whereNotIn('status', ['cancelled'])
@@ -245,7 +265,6 @@ class AppointmentController extends Controller
             return true;
         }));
 
-        // Filtrar slots bloqueados por days off
         $daysOff = DayOff::where('date', $request->date)->get();
 
         $availableSlots = array_values(array_filter($availableSlots, function ($slot) use ($daysOff) {
