@@ -99,4 +99,9 @@ class User extends Authenticatable
     {
         return asset('storage/' . $this->avatar);
     }
+
+    public function appointments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Appointment::class, 'client_id');
+    }
 }
