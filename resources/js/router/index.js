@@ -92,6 +92,12 @@ const routes = [
     component: () => import('@/views/case-manager/PerfilCaseManager.vue'),
     meta: { requiresAuth: true, roles: ['case_manager'] }
   },
+  {
+    path: '/case-manager/estado-citas',
+    name: 'case-manager-estado-citas',
+    component: () => import('@/views/case-manager/EstadoCitas.vue'),
+    meta: { requiresAuth: true, roles: ['case_manager'] }
+  },
 
   // ─── Client ───────────────────────────────────────────────
   {
@@ -128,15 +134,15 @@ router.beforeEach((to, from, next) => {
   // Redirección automática desde /dashboard
   if (auth.isAuthenticated && to.path === '/dashboard') {
     const role = auth.user?.roles?.[0]?.name
-    if (role === 'admin')        return next('/admin/dashboard')
+    if (role === 'admin') return next('/admin/dashboard')
     if (role === 'case_manager') return next('/case-manager/dashboard')
-    if (role === 'client')       return next('/client/dashboard')
+    if (role === 'client') return next('/client/dashboard')
   }
 
   // Protección por rol
   if (to.meta.roles && auth.isAuthenticated) {
     const userRoles = auth.user?.roles?.map(r => r.name) || []
-    const hasRole   = to.meta.roles.some(role => userRoles.includes(role))
+    const hasRole = to.meta.roles.some(role => userRoles.includes(role))
     if (!hasRole) return next('/')
   }
 

@@ -9,10 +9,11 @@ const { t }   = useI18n()
 const auth    = useAuthStore()
 
 const navItems = computed(() => [
-  { to: '/case-manager/dashboard', icon: '🏠', label: t('cm.nav.dashboard') },
-  { to: '/case-manager/citas',     icon: '📅', label: t('cm.nav.appointments') },
-  { to: '/case-manager/clientes',  icon: '👥', label: t('cm.nav.clients') },
-  { to: '/case-manager/perfil',    icon: '👤', label: t('cm.nav.profile') },
+  { to: '/case-manager/dashboard',    icon: '🏠', label: t('cm.nav.dashboard') },
+  { to: '/case-manager/citas',        icon: '📅', label: t('cm.nav.appointments') },
+  { to: '/case-manager/estado-citas', icon: '📊', label: t('cm.nav.appointment_status') },
+  { to: '/case-manager/clientes',     icon: '👥', label: t('cm.nav.clients') },
+  { to: '/case-manager/perfil',       icon: '👤', label: t('cm.nav.profile') },
 ])
 
 const isActive = (path) => route.path === path

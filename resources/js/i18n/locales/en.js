@@ -177,6 +177,7 @@ export default {
       appointments: 'My Appointments',
       clients:      'My Clients',
       profile:      'Profile',
+      appointment_status: "Appointment Status",
     },
     dashboard: {
       title:              'Good day',
