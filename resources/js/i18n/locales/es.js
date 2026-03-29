@@ -170,6 +170,43 @@ export default {
     error_conflict: 'El case manager ya tiene una cita en ese horario.',
     error_save:     'Error al guardar la cita.',
   },
+  cm: {
+    nav: {
+      dashboard:    'Dashboard',
+      appointments: 'Mis Citas',
+      clients:      'Mis Clientes',
+      profile:      'Perfil',
+    },
+    dashboard: {
+      title:              'Buen día',
+      subtitle:           'Bienvenido, {name}',
+      total_appointments: 'Total Citas',
+      my_clients:         'Mis Clientes',
+      today:              'Citas de Hoy',
+      upcoming:           'Próximas (7 días)',
+      no_today:           'No hay citas para hoy',
+      no_upcoming:        'No hay citas próximas',
+    },
+    clients: {
+      title:        'Mis Clientes',
+      subtitle:     'Clientes asignados a ti',
+      total:        'clientes',
+      search:       'Buscar por nombre o email...',
+      empty:        'No tienes clientes asignados',
+      total_appts:  'Citas',
+      next_appt:    'Próxima cita',
+      no_next_appt: 'Sin citas próximas',
+    },
+    profile: {
+      title:           'Mi Perfil',
+      subtitle:        'Gestiona tu información personal',
+      personal_info:   'Información Personal',
+      change_password: 'Cambiar Contraseña',
+      save:            'Guardar cambios',
+      saved:           'Perfil actualizado correctamente.',
+      error:           'Error al actualizar el perfil.',
+    },
+  },
   notifications: {
     new_user: '🧑 Nuevo usuario: {name} ({email})',
   }

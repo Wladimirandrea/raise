@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Events\AppointmentCreated;
 use App\Mail\AppointmentConfirmation;
 use App\Http\Controllers\Controller;
+use App\Mail\AppointmentStatusMail;
 use App\Models\Appointment;
 use App\Models\DayOff;
 use App\Models\Schedule;
@@ -159,6 +160,7 @@ class AppointmentController extends Controller
     }
 
     // ─── PATCH /api/admin/appointments/{id}/status ────────────
+    // ─── PATCH /api/admin/appointments/{id}/status ────────────
     public function updateStatus(Request $request, Appointment $appointment): JsonResponse
     {
         $request->validate([
@@ -167,6 +169,28 @@ class AppointmentController extends Controller
 
         $appointment->update(['status' => $request->status]);
         $appointment->load(['caseManager', 'client']);
+
+        $lang = $request->header('X-Locale', app()->getLocale() ?? 'es');
+
+        // Email al case manager
+        try {
+            if ($appointment->caseManager?->email) {
+                Mail::to($appointment->caseManager->email)
+                    ->send(new AppointmentStatusMail($appointment, $lang, 'case_manager'));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error email CM: ' . $e->getMessage());
+        }
+
+        // Email al cliente
+        try {
+            if ($appointment->client?->email) {
+                Mail::to($appointment->client->email)
+                    ->send(new AppointmentStatusMail($appointment, $lang, 'client'));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error email cliente: ' . $e->getMessage());
+        }
 
         return response()->json($appointment);
     }

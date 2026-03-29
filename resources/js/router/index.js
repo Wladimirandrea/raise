@@ -1,35 +1,29 @@
 // resources/js/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'   // ← CORREGIDO con alias @
-
-// Lazy loading de vistas
-const RegisterView = () => import('@/views/auth/RegisterView.vue')
-const LoginView = () => import('@/views/auth/LoginView.vue')
-const DashboardView = () => import('@/views/DashboardView.vue')
-const HomeView = () => import('@/views/HomeView.vue')
+import { useAuthStore } from '@/stores/auth'
 
 const routes = [
-  { path: '/', name: 'home', component: HomeView },
+  { path: '/', name: 'home', component: () => import('@/views/HomeView.vue') },
   {
     path: '/register',
     name: 'register',
-    component: RegisterView,
+    component: () => import('@/views/auth/RegisterView.vue'),
     meta: { guestOnly: true }
   },
   {
     path: '/login',
     name: 'login',
-    component: LoginView,
+    component: () => import('@/views/auth/LoginView.vue'),
     meta: { guestOnly: true }
   },
   {
     path: '/dashboard',
     name: 'dashboard',
-    component: DashboardView,
+    component: () => import('@/views/DashboardView.vue'),
     meta: { requiresAuth: true }
   },
 
-
+  // ─── Admin ────────────────────────────────────────────────
   {
     path: '/admin/dashboard',
     name: 'admin-dashboard',
@@ -42,20 +36,12 @@ const routes = [
     component: () => import('@/views/admin/UsersCrud.vue'),
     meta: { requiresAuth: true, roles: ['admin'] }
   },
-
   {
     path: '/admin/schedules',
     name: 'admin-schedules',
     component: () => import('@/views/admin/SchedulesAdmin.vue'),
     meta: { requiresAuth: true, roles: ['admin'] }
   },
-
-
-
-
-
-
-
   {
     path: '/admin/appointments',
     name: 'admin-appointments',
@@ -81,13 +67,33 @@ const routes = [
     meta: { requiresAuth: true, roles: ['admin'] }
   },
 
-
+  // ─── Case Manager ─────────────────────────────────────────
   {
     path: '/case-manager/dashboard',
     name: 'case-manager-dashboard',
     component: () => import('@/views/case-manager/DashboardCaseManager.vue'),
-    meta: { requiresAuth: true, roles: ['casemanager'] }
+    meta: { requiresAuth: true, roles: ['case_manager'] }
   },
+  {
+    path: '/case-manager/citas',
+    name: 'case-manager-citas',
+    component: () => import('@/views/case-manager/MisCitas.vue'),
+    meta: { requiresAuth: true, roles: ['case_manager'] }
+  },
+  {
+    path: '/case-manager/clientes',
+    name: 'case-manager-clientes',
+    component: () => import('@/views/case-manager/MisClientes.vue'),
+    meta: { requiresAuth: true, roles: ['case_manager'] }
+  },
+  {
+    path: '/case-manager/perfil',
+    name: 'case-manager-perfil',
+    component: () => import('@/views/case-manager/PerfilCaseManager.vue'),
+    meta: { requiresAuth: true, roles: ['case_manager'] }
+  },
+
+  // ─── Client ───────────────────────────────────────────────
   {
     path: '/client/dashboard',
     name: 'client-dashboard',
@@ -95,8 +101,7 @@ const routes = [
     meta: { requiresAuth: true, roles: ['client'] }
   },
 
-
-  // Ruta 404 (opcional pero útil)
+  // ─── 404 ──────────────────────────────────────────────────
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -109,34 +114,33 @@ const router = createRouter({
   routes
 })
 
-// Middleware global
 router.beforeEach((to, from, next) => {
-  const auth = useAuthStore();
+  const auth = useAuthStore()
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    return next('/login');
+    return next('/login')
   }
 
-  // Redirección automática si va a una ruta genérica /dashboard
+  if (to.meta.guestOnly && auth.isAuthenticated) {
+    return next('/dashboard')
+  }
+
+  // Redirección automática desde /dashboard
   if (auth.isAuthenticated && to.path === '/dashboard') {
-    const role = auth.user?.roles?.[0]?.name;
-
-    if (role === 'admin') return next('/admin/dashboard');
-    if (role === 'casemanager') return next('/case-manager/dashboard');
-    if (role === 'client') return next('/client/dashboard');
+    const role = auth.user?.roles?.[0]?.name
+    if (role === 'admin')        return next('/admin/dashboard')
+    if (role === 'case_manager') return next('/case-manager/dashboard')
+    if (role === 'client')       return next('/client/dashboard')
   }
 
-  // Protección adicional por rol específico
+  // Protección por rol
   if (to.meta.roles && auth.isAuthenticated) {
-    const userRoles = auth.user?.roles?.map(r => r.name) || [];
-    const hasRole = to.meta.roles.some(role => userRoles.includes(role));
-
-    if (!hasRole) {
-      return next('/'); // o mostrar mensaje de acceso denegado
-    }
+    const userRoles = auth.user?.roles?.map(r => r.name) || []
+    const hasRole   = to.meta.roles.some(role => userRoles.includes(role))
+    if (!hasRole) return next('/')
   }
 
-  next();
-});
+  next()
+})
 
 export default router

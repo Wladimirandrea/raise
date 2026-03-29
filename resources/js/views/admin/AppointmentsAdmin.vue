@@ -516,6 +516,7 @@ export default {
     await this.loadAppointments()
     await this.loadActiveDays()
     this.subscribeToNotifications()
+    window.addEventListener('appointment:status-updated', this.loadAppointments)
   },
 
   beforeUnmount() {
@@ -523,6 +524,7 @@ export default {
     if (window.Echo && authStore.user?.id) {
       window.Echo.leave('case-manager.' + authStore.user.id)
     }
+    window.removeEventListener('appointment:status-updated', this.loadAppointments)
   },
 
   methods: {
@@ -657,8 +659,6 @@ export default {
             appointment_date: this.form.appointment_date,
             start_time:       this.form.start_time,
             notes:            this.form.notes,
-          },{
-            headers: { 'X-Locale': this.$i18n.locale }
           })
         }
         this.closePanel()

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Admin\AppointmentController;
 use App\Http\Controllers\Api\Admin\CaseManagerController;
+use App\Http\Controllers\Api\CaseManager\CaseManagerDashboardController;
 use App\Http\Controllers\Api\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\RegisterController;
@@ -66,4 +67,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
         Route::post('/{user}/assign',     [CaseManagerController::class, 'assignClients']);
         Route::delete('/{user}/unassign', [CaseManagerController::class, 'unassignClient']);
     });
+});
+
+// ─── Case Manager routes ───────────────────────────────────
+Route::middleware(['auth:sanctum', 'role:case_manager'])->prefix('case-manager')->group(function () {
+    Route::get('/dashboard',    [CaseManagerDashboardController::class, 'dashboard']);
+    Route::get('/appointments', [CaseManagerDashboardController::class, 'appointments']);
+    Route::get('/clients',      [CaseManagerDashboardController::class, 'clients']);
+    Route::patch('/appointments/{appointment}/status', [CaseManagerDashboardController::class, 'updateAppointmentStatus']);
 });

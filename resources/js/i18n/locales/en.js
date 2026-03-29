@@ -171,6 +171,43 @@ export default {
     error_conflict: 'The case manager already has an appointment at that time.',
     error_save:     'Error saving appointment.',
   },
+  cm: {
+    nav: {
+      dashboard:    'Dashboard',
+      appointments: 'My Appointments',
+      clients:      'My Clients',
+      profile:      'Profile',
+    },
+    dashboard: {
+      title:              'Good day',
+      subtitle:           'Welcome back, {name}',
+      total_appointments: 'Total Appointments',
+      my_clients:         'My Clients',
+      today:              "Today's Appointments",
+      upcoming:           'Upcoming (7 days)',
+      no_today:           'No appointments today',
+      no_upcoming:        'No upcoming appointments',
+    },
+    clients: {
+      title:        'My Clients',
+      subtitle:     'Clients assigned to you',
+      total:        'clients',
+      search:       'Search by name or email...',
+      empty:        'No clients assigned',
+      total_appts:  'Appointments',
+      next_appt:    'Next appt.',
+      no_next_appt: 'No upcoming appointments',
+    },
+    profile: {
+      title:           'My Profile',
+      subtitle:        'Manage your personal information',
+      personal_info:   'Personal Information',
+      change_password: 'Change Password',
+      save:            'Save changes',
+      saved:           'Profile updated successfully.',
+      error:           'Error updating profile.',
+    },
+  },
   notifications: {
     new_user: '🧑 New user: {name} ({email})',
   }

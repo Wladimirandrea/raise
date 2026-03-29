@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { Howl, Howler } from 'howler'
 import Navbar from '@/components/Navbar.vue'
 import AdminSidebar from '@/components/AdminSidebar.vue'
+import CaseManagerSidebar from '@/components/CaseManagerSidebar.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 import BottomNav from '@/components/BottomNav.vue'
 
@@ -14,9 +15,10 @@ const toast = useToast()
 const notifications = useNotificationsStore()
 const { t, locale } = useI18n()
 
-let adminChannel       = null
+let adminChannel = null
 let caseManagerChannel = null
-let notificationSound  = null
+let notificationSound = null
+let audioUnlocked = false
 
 const initSound = () => {
   if (!notificationSound) {
@@ -24,10 +26,27 @@ const initSound = () => {
       src: ['/sounds/notification.mp3'],
       volume: 1.0,
       preload: true,
-      html5: false,
+      html5: true,
+      pool: 1,
       onload: () => console.log('✅ Sonido cargado'),
       onloaderror: (id, err) => console.error('❌ Error cargando sonido:', err),
     })
+  }
+}
+
+// ─── Desbloquear audio en cada interacción hasta lograrlo ─
+const unlock = () => {
+  if (audioUnlocked) return
+  Howler.ctx?.resume()
+  if (notificationSound) {
+    notificationSound.volume(0)
+    const id = notificationSound.play()
+    setTimeout(() => {
+      notificationSound.stop(id)
+      notificationSound.volume(1.0)
+      audioUnlocked = true
+      console.log('✅ Audio desbloqueado')
+    }, 100)
   }
 }
 
@@ -66,15 +85,24 @@ const subscribeAdminChannel = () => {
       const time = data.start_time?.slice(0, 5)
       const date = formatDate(data.appointment_date)
       notifications.addAppointment({
-        id:     data.id,
-        title:  data.title,
-        date:   data.appointment_date,
-        time:   time,
+        id: data.id,
+        title: data.title,
+        date: data.appointment_date,
+        time: time,
         client: data.client?.name,
       })
       toast.info(
         `📅 ${t('appointments.new')}: ${data.title} · ${data.client?.name} · ${date} ${time}`,
         { position: 'top-right', timeout: 8000 }
+      )
+      notificationSound?.play()
+    })
+    .listen('.appointment.status.updated', (data) => {
+      console.log('✅ Estado actualizado (admin):', data)
+      window.dispatchEvent(new CustomEvent('appointment:status-updated'))
+      toast.info(
+        `🔄 ${data.title} → ${t('appointments.status.' + data.status)}`,
+        { position: 'top-right', timeout: 6000 }
       )
       notificationSound?.play()
     })
@@ -100,18 +128,28 @@ const subscribeCaseManagerChannel = () => {
   caseManagerChannel = window.Echo.private('case-manager.' + auth.user.id)
     .listen('.appointment.created', (data) => {
       console.log('✅ Nueva cita para case manager:', data)
+      window.dispatchEvent(new CustomEvent('appointment:created'))
       const time = data.start_time?.slice(0, 5)
       const date = formatDate(data.appointment_date)
       notifications.addAppointment({
-        id:     data.id,
-        title:  data.title,
-        date:   data.appointment_date,
-        time:   time,
+        id: data.id,
+        title: data.title,
+        date: data.appointment_date,
+        time: time,
         client: data.client?.name,
       })
       toast.success(
         `📅 ${t('appointments.new')}: ${data.title}\n${t('appointments.fields.client')}: ${data.client?.name} · ${date} ${time}`,
         { position: 'top-right', timeout: 8000 }
+      )
+      notificationSound?.play()
+    })
+    .listen('.appointment.status.updated', (data) => {  // ✅ agrega esto
+      console.log('✅ Estado actualizado (case manager):', data)
+      window.dispatchEvent(new CustomEvent('appointment:status-updated'))
+      toast.info(
+        `🔄 ${data.title} → ${t('appointments.status.' + data.status)}`,
+        { position: 'top-right', timeout: 6000 }
       )
       notificationSound?.play()
     })
@@ -146,17 +184,16 @@ watch(
 
 onMounted(() => {
   initSound()
-  const unlock = () => {
-    Howler.ctx?.resume()
-    document.removeEventListener('click', unlock)
-  }
-  document.addEventListener('click', unlock, { once: true })
+  document.addEventListener('click', unlock)
+  document.addEventListener('touchstart', unlock)
 })
 
 onUnmounted(() => {
   unsubscribeAdminChannel()
   unsubscribeCaseManagerChannel()
   notificationSound?.unload()
+  document.removeEventListener('click', unlock)
+  document.removeEventListener('touchstart', unlock)
 })
 </script>
 
@@ -166,6 +203,7 @@ onUnmounted(() => {
 
     <div class="flex flex-1">
       <AdminSidebar v-if="auth.isAdmin" class="hidden lg:flex" />
+      <CaseManagerSidebar v-if="auth.isCaseManager" class="hidden lg:flex" />
 
       <main class="flex-grow flex flex-col min-h-0">
         <router-view />

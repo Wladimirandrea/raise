@@ -21,6 +21,11 @@ const menuItems = [
     to: '/admin/users'
   },
   {
+    label: 'sidebar.casemanagers',
+    icon: '🧑‍💼',
+    to: '/admin/case-managers'
+  },
+  {
     label: 'sidebar.schedules',
     icon: '🗓️',
     to: '/admin/schedules'
@@ -34,11 +39,7 @@ const menuItems = [
     icon: '📅',
     to: '/admin/appointments'
   },
-  {
-    label: 'sidebar.casemanagers',
-    icon: '🧑‍💼',
-    to: '/admin/case-managers'
-  },
+
   {
     label: 'sidebar.reports',
     icon: '📊',
