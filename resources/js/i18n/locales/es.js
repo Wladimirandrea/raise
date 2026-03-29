@@ -172,11 +172,12 @@ export default {
   },
   cm: {
     nav: {
-      dashboard:    'Dashboard',
-      appointments: 'Mis Citas',
-      clients:      'Mis Clientes',
-      profile:      'Perfil',
-      appointment_status: "Estado de citas"
+      dashboard:          'Dashboard',
+      appointments:       'Mis Citas',
+      clients:            'Mis Clientes',
+      profile:            'Perfil',
+      appointment_status: 'Estado de citas',
+      new_appointment:    'Nueva Cita',
     },
     dashboard: {
       title:              'Buen día',

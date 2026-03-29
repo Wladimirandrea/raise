@@ -189,4 +189,113 @@ class CaseManagerDashboardController extends Controller
 
         return response()->json($appointment);
     }
+
+    public function store(Request $request): JsonResponse
+    {
+        $userId = Auth::id();
+
+        $validated = $request->validate([
+            'client_id'        => 'required|exists:users,id',
+            'title'            => 'required|string|max:255',
+            'appointment_date' => 'required|date|after_or_equal:today',
+            'start_time'       => 'required|date_format:H:i',
+            'notes'            => 'nullable|string',
+        ]);
+
+        // Verificar que el cliente pertenece a este case manager
+        $client = User::find($validated['client_id']);
+        if ($client->case_manager_id !== $userId) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
+        $validated['case_manager_id'] = $userId;
+        $validated['end_time'] = \Carbon\Carbon::parse($validated['start_time'])
+            ->addMinutes(30)->format('H:i');
+
+        // Verificar solapamiento
+        $conflict = Appointment::where('case_manager_id', $userId)
+            ->where('appointment_date', $validated['appointment_date'])
+            ->where('status', '!=', 'cancelled')
+            ->where(function ($q) use ($validated) {
+                $q->where('start_time', '<', $validated['end_time'])
+                    ->where('end_time', '>', $validated['start_time']);
+            })->exists();
+
+        if ($conflict) {
+            return response()->json(['message' => 'Ya tienes una cita en ese horario.'], 422);
+        }
+
+        $appointment = Appointment::create($validated);
+        $appointment->load(['caseManager', 'client']);
+
+        $lang = $request->header('X-Locale', app()->getLocale() ?? 'es');
+
+        // Emails
+        try {
+            if ($appointment->caseManager?->email) {
+                Mail::to($appointment->caseManager->email)
+                    ->send(new \App\Mail\AppointmentConfirmation($appointment, 'case_manager', $lang));
+            }
+            if ($appointment->client?->email) {
+                Mail::to($appointment->client->email)
+                    ->send(new \App\Mail\AppointmentConfirmation($appointment, 'client', $lang));
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error email nueva cita CM: ' . $e->getMessage());
+        }
+
+        return response()->json($appointment, 201);
+    }
+
+    public function availableSlots(Request $request): JsonResponse
+    {
+        $userId = Auth::id();
+
+        $request->validate([
+            'date' => 'required|date|after_or_equal:today',
+        ]);
+
+        $date      = \Carbon\Carbon::parse($request->date);
+        $dayOfWeek = $date->dayOfWeek;
+
+        $schedule = \App\Models\Schedule::where('day_of_week', $dayOfWeek)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$schedule) {
+            return response()->json(['available' => false, 'slots' => []]);
+        }
+
+        $slots   = [];
+        $current = \Carbon\Carbon::parse($request->date . ' ' . $schedule->start_time);
+        $end     = \Carbon\Carbon::parse($request->date . ' ' . $schedule->end_time);
+
+        while ($current->copy()->addMinutes(30)->lte($end)) {
+            $slots[] = [
+                'start' => $current->format('H:i'),
+                'end'   => $current->copy()->addMinutes(30)->format('H:i'),
+                'label' => $current->format('H:i') . ' - ' . $current->copy()->addMinutes(30)->format('H:i'),
+            ];
+            $current->addMinutes(30);
+        }
+
+        $booked = Appointment::where('case_manager_id', $userId)
+            ->where('appointment_date', $request->date)
+            ->whereNotIn('status', ['cancelled'])
+            ->get(['start_time', 'end_time']);
+
+        $available = array_values(array_filter($slots, function ($slot) use ($booked) {
+            foreach ($booked as $b) {
+                if (
+                    \Carbon\Carbon::parse($slot['start'])->lt(\Carbon\Carbon::parse($b->end_time)) &&
+                    \Carbon\Carbon::parse($slot['end'])->gt(\Carbon\Carbon::parse($b->start_time))
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        }));
+
+        return response()->json(['available' => true, 'slots' => $available]);
+    }
 }

@@ -98,6 +98,12 @@ const routes = [
     component: () => import('@/views/case-manager/EstadoCitas.vue'),
     meta: { requiresAuth: true, roles: ['case_manager'] }
   },
+  {
+    path: '/case-manager/nueva-cita',
+    name: 'case-manager-nueva-cita',
+    component: () => import('@/views/case-manager/NuevaCita.vue'),
+    meta: { requiresAuth: true, roles: ['case_manager'] }
+  },
 
   // ─── Client ───────────────────────────────────────────────
   {

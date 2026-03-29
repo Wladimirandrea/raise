@@ -75,4 +75,6 @@ Route::middleware(['auth:sanctum', 'role:case_manager'])->prefix('case-manager')
     Route::get('/appointments', [CaseManagerDashboardController::class, 'appointments']);
     Route::get('/clients',      [CaseManagerDashboardController::class, 'clients']);
     Route::patch('/appointments/{appointment}/status', [CaseManagerDashboardController::class, 'updateAppointmentStatus']);
+    Route::post('/appointments', [CaseManagerDashboardController::class, 'store']);                    
+    Route::get('/available-slots', [CaseManagerDashboardController::class, 'availableSlots']);
 });
